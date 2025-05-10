@@ -1,0 +1,13 @@
+package com.lotterysystem.server.service;
+
+import com.baomidou.mybatisplus.extension.service.IService;
+import com.lotterysystem.server.pojo.entity.Lottery;
+
+/**
+* @author thanw
+* @description 针对表【lottery】的数据库操作Service
+* @createDate 2025-05-10 18:35:53
+*/
+public interface LotteryService {
+
+}

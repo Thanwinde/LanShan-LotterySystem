@@ -1,0 +1,27 @@
+autoDetectedPackages:
+- com.lotterysystem.gateway.config
+- com.lotterysystem.gateway.interceptor
+- com.lotterysystem.gateway.util
+- com.lotterysystem.server
+- generator.domain
+enableAutoDetect: true
+entryDisplayConfig:
+  excludedPathPatterns: []
+  skipJsCss: true
+funcDisplayConfig:
+  skipConstructors: false
+  skipFieldAccess: true
+  skipFieldChange: true
+  skipGetters: false
+  skipNonProjectPackages: false
+  skipPrivateMethods: false
+  skipSetters: false
+ignoreSameClassCall: null
+ignoreSamePackageCall: null
+includedPackagePrefixes: null
+includedParentClasses: null
+name: xcodemap-filter
+recordMode: all
+sourceDisplayConfig:
+  color: blue
+startOnDebug: false
