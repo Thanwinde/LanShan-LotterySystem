@@ -1,0 +1,24 @@
+server:
+  port: 8080
+  servlet:
+    session:
+      timeout: 60m
+spring:
+  jpa:
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/lottery?useSSL=true&serverTimezone=UTC&characterEncoding=UTF-8
+    username: root
+    password: 123456
+
+logging:
+  level:
+    com:
+      sky:
+        mapper: debug
+        service: info
+        controller: info
