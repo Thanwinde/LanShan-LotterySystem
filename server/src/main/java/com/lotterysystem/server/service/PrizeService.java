@@ -19,5 +19,7 @@ public interface PrizeService extends IService<Prize> {
 
     ArrayList<Prize> getPrizeList(Long lotteryId);
 
+    void deletePrizeList(Long lotteryId);
+
     void addPrizeList(Long id, ArrayList<PrizeDTO> prizes);
 }

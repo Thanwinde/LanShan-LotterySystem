@@ -1,8 +1,10 @@
 package com.lotterysystem.server.util;
 
 
+import cn.hutool.core.lang.TypeReference;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONUtil;
 
 import lombok.extern.slf4j.Slf4j;
@@ -20,14 +22,15 @@ public class CacheUtil {
     @Autowired
     private RedisTemplate<String,String> redisTemplate;
 
-    public <R, ID> R queryWithMutex(String keyPrefix, ID id, Class<R> type, Function<ID, R> dbFallback) {
+    public <R, ID> R queryWithMutex(String keyPrefix, ID id, TypeReference<R> type, Function<ID, R> dbFallback) {
         R r;
         String key = keyPrefix +":"+ id;
         String json = redisTemplate.opsForValue().get(key);
         if (StrUtil.isNotBlank(json)) {
 
             //log.info("Redis缓存命中! {}", json);
-            return JSONUtil.toBean(json, type);
+            if(!JSONUtil.isJsonArray(json))
+                return JSONUtil.toBean(json,type,false);
 
         }
         if (json != null) {
@@ -72,6 +75,7 @@ public class CacheUtil {
         }
         return r;
     }
+
 
 
     public <ID,R> void update(String keyPrefix, ID id, R content, Class<R> type, Function<ID, R> dbFallback,Consumer<R> dbUpdate){

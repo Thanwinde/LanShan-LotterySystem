@@ -1,6 +1,7 @@
 package com.lotterysystem.server.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lotterysystem.server.pojo.dto.PrizeDTO;
 import com.lotterysystem.server.pojo.entity.Prize;
@@ -45,6 +46,14 @@ public class PrizeServiceImpl extends ServiceImpl<PrizeMapper, Prize>
     public ArrayList<Prize> getPrizeList(Long lotteryId){
         List<Prize> list = cacheUtil.queryWithMutex("prize:list", lotteryId, List.class, id -> lambdaQuery().eq(Prize::getLotteryId, id).list());
         return new ArrayList<>(list);
+    }
+
+    @Override
+    public void deletePrizeList(Long lotteryId){
+        QueryWrapper<Prize> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("lottery_id", lotteryId);
+        this.remove(queryWrapper);
+        cacheUtil.delete("prize:list", lotteryId);
     }
 
     @Override
