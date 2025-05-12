@@ -34,14 +34,10 @@ public class LotteryJobService extends ServiceImpl<LotteryMapper, Lottery> {
 
     public void startLottery(String id){
         //TODO搬入奖品到redis
-
-
         Lottery lottery = getLotteryWithCache(id);
         lottery.setIsActive(1);
         updateLotteryWithCache(lottery);
         log.info("开始抽奖：{} {}",id,lottery.getName());
-
-
     }
 
     public void endLottery(String id){

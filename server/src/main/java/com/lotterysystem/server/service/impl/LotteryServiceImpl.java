@@ -47,7 +47,7 @@ public class LotteryServiceImpl extends ServiceImpl<LotteryMapper, Lottery> impl
     final PrizeService prizeService;
 
     @Override
-    public Result addLottery(LotteryDTO lotteryDTO) throws Exception {
+    public Result addLottery(LotteryDTO lotteryDTO) {
         if(lotteryDTO.getStartTime().getTime() < System.currentTimeMillis() || lotteryDTO.getEndTime().getTime()< lotteryDTO.getStartTime().getTime()){
             return new Result(ResultStatue.ERROR,"创建失败!时间不合法!",null);
         }
@@ -101,9 +101,18 @@ public class LotteryServiceImpl extends ServiceImpl<LotteryMapper, Lottery> impl
     }
 
     @Override
-    public Result getLottery(Long id) {
-        Lottery lottery = cacheUtil.queryWithMutex("lottery:obj", id, Lottery.class, this::getById);
-        return new Result(ResultStatue.SUCCESS,"查询成功！",lottery);
+    public Result getLottery(Long lotteryId) {
+        Lottery lottery = cacheUtil.queryWithMutex("lottery:obj", lotteryId, Lottery.class, this::getById);
+        List<Prize> prize = prizeService.getPrizeList(lotteryId);
+        ArrayList<PrizeVO> prizeVOS = new ArrayList<>();
+        for(Prize prize1 : prize){
+            PrizeVO prizeVO = BeanUtil.toBean(prize1,PrizeVO.class);
+            prizeVOS.add(prizeVO);
+        }
+        LotteryVO lotteryVO = BeanUtil.copyProperties(lottery, LotteryVO.class);
+        lotteryVO.setPrizes(prizeVOS);
+
+        return new Result(ResultStatue.SUCCESS,"查询成功！",lotteryVO);
     }
 
     @Override
