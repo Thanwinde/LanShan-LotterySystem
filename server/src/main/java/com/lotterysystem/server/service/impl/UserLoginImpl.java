@@ -25,6 +25,8 @@ public class UserLoginImpl extends ServiceImpl<UserMapper, User> implements User
         if (user != null) {
             HttpSession session = request.getSession();
             session.setAttribute("id", user.getId());
+            session.setAttribute("name", user.getUsername());
+            session.setAttribute("auth", user.getAuthority());
             return new Result(ResultStatue.SUCCESS,"登录成功!",user.getId());
         }
         return new Result(ResultStatue.UNAUTHORIZED,"登录失败！",null);

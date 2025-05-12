@@ -2,17 +2,39 @@ package com.lotterysystem.gateway.util;
 
 public class UserContext {
 
-    public static ThreadLocal<Long> threadLocal = new ThreadLocal<>();
+    public static ThreadLocal<Long> threadLocalId = new ThreadLocal<>();
+
+    public static ThreadLocal<String> threadLocalName = new ThreadLocal<>();
+
+    public static ThreadLocal<String> threadLocalAuth = new ThreadLocal<>();
 
     public static void setId(Long id) {
-        threadLocal.set(id);
+        threadLocalId.set(id);
     }
 
     public static Long getId() {
-        return threadLocal.get();
+        return threadLocalId.get();
     }
-    public static void removeId() {
-        threadLocal.remove();
+
+    public static void setName(String name) {
+        threadLocalName.set(name);
     }
+
+    public static String getName() {
+        return threadLocalName.get();
+    }
+
+    public static void setAuth(String auth) {
+        threadLocalAuth.set(auth);
+    }
+
+    public static String getAuth() {
+        return threadLocalAuth.get();
+    }
+    public static void remove() {
+        threadLocalId.remove();
+    }
+
+
 
 }

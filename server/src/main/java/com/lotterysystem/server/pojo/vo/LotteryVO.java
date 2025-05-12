@@ -1,21 +1,17 @@
-package com.lotterysystem.server.pojo.entity;
-
-
-import java.io.Serializable;
-
-import java.util.Date;
+package com.lotterysystem.server.pojo.vo;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.lotterysystem.server.pojo.dto.PrizeDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
-
 import lombok.Data;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Date;
 
 @Data
-@TableName("lottery")
-public class Lottery implements Serializable {
+public class LotteryVO implements Serializable {
 
     /**
      * 序号
@@ -49,12 +45,7 @@ public class Lottery implements Serializable {
 
     @Schema(description = "结束时间")
     private Date endTime;
-    /**
-     * 模式相关参数，如阈值、等级权重等
-     */
 
-    @Schema(description ="模式相关参数，如阈值、等级权重等")
-    private Object ruleConfig;
     /**
      * 是否启用
      */
@@ -82,6 +73,7 @@ public class Lottery implements Serializable {
     @Schema(description = "是否结束")
     private Integer isEnd;
 
-
+    @Schema(description = "奖品池")
+    private ArrayList<PrizeVO> prizes;
 
 }

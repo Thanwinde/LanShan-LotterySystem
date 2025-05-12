@@ -20,20 +20,27 @@ public class AuthInterceptor implements HandlerInterceptor {
                              HttpServletResponse response,
                              Object handler) throws Exception {
 
-        log.info("拦截：{}", request.getRequestURI());
+        //log.info("拦截请求：{}", request.getRequestURI());
         HttpSession session = request.getSession(false);
         if (session == null) {
-            log.error("session为空");
+            log.error("拒绝访问:session为空");
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "无信息，未登录！");
             return false;
         }
-        Object name = session.getAttribute("id");
-        if (name == null) {
-            log.error("未找到登录用户信息");
+        Object id = session.getAttribute("id");
+        Object name = session.getAttribute("name");
+        Object auth = session.getAttribute("auth");
+        if (id == null) {
+            log.error("拒绝访问:未找到登录用户信息");
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "无信息，未登录！");
             return false;
         }
-        UserContext.setId(session.getAttribute("id"));
+        if(UserContext.getId() == null)
+            UserContext.setId((Long) session.getAttribute("id"));
+        if(UserContext.getName() == null)
+            UserContext.setName((String) session.getAttribute("name"));
+        if(UserContext.getAuth() == null)
+            UserContext.setAuth((String) session.getAttribute("auth"));
         return true;
     }
 }

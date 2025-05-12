@@ -14,9 +14,10 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
         "com.lotterysystem.gateway",
         "com.lotterysystem.server"
 })
-@EnableTransactionManagement //开启注解方式的事务管理
+@EnableTransactionManagement
 @Slf4j
 public class Start {
+
     public static void main(String[] args) {
         SpringApplication.run(Start.class, args);
         log.info("server started");

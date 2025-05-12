@@ -15,12 +15,14 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(interceptor)
-                // 拦截所有请求
+
                 .addPathPatterns("/**")
-                // 排除不需要检查的路径
+
                 .excludePathPatterns(
                     "/api/admin/login",
-                    "/swagger-ui/**"
+                    "/swagger-ui/**",
+                    "/v3/**",
+                    "/error"
                 );
     }
 }

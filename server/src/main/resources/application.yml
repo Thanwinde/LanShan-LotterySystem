@@ -11,9 +11,27 @@ spring:
         format_sql: true
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/lottery?useSSL=true&serverTimezone=UTC&characterEncoding=UTF-8
+    url: jdbc:mysql://localhost:3306/lottery?useSSL=true&serverTimezone=Asia/Shanghai&characterEncoding=UTF-8
     username: root
     password: 123456
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: 123456
+  quartz:
+    job-store-type: jdbc
+    jdbc:
+      initialize-schema: never
+    properties:
+      org:
+        quartz:
+          jobStore:
+            misfireThreshold: 60000
+            #一分钟的容忍，超出就按超时处理
+          scheduler:
+            instanceName: LotteryScheduler
+
 
 logging:
   level:
