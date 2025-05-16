@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lotterysystem.server.mapper.RecordMapper">
+
+    <resultMap id="BaseResultMap" type="com.lotterysystem.server.pojo.entity.Record">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="user_id" column="user_id" jdbcType="BIGINT"/>
+            <result property="lottery_id" column="lottery_id" jdbcType="BIGINT"/>
+            <result property="lottery_name" column="lottery_name" jdbcType="VARCHAR"/>
+            <result property="prize_id" column="prize_id" jdbcType="BIGINT"/>
+            <result property="prize_name" column="prize_name" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,user_id,lottery_id,
+        lottery_name,prize_id,prize_name
+    </sql>
+</mapper>

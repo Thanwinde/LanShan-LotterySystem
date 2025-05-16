@@ -23,4 +23,5 @@ public interface LotteryService {
 
     Result deleteLottery(Long id) throws Exception;
 
+    Lottery getLotteryById(Long id);
 }

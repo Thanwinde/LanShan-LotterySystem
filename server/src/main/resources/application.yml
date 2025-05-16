@@ -31,8 +31,20 @@ spring:
             #一分钟的容忍，超出就按超时处理
           scheduler:
             instanceName: LotteryScheduler
-
-
+  rabbitmq:
+    host: 192.168.247.133
+    port: 5672
+    virtual-host: /lottery
+    username: TWind
+    password: 123456
+    listener:
+      simple:
+        retry:
+          enabled: true
+          initial-interval: 1000ms
+          multiplier: 1
+          max-attempts: 3
+          stateless: true
 logging:
   level:
     com:

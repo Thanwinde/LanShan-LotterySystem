@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.lang.TypeReference;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lotterysystem.gateway.util.UserContext;
+import com.lotterysystem.server.constant.CachePrefix;
 import com.lotterysystem.server.constant.ResultStatue;
 
 import com.lotterysystem.server.mapper.LotteryMapper;
@@ -48,6 +49,8 @@ public class LotteryServiceImpl extends ServiceImpl<LotteryMapper, Lottery> impl
 
     final PrizeService prizeService;
 
+    final LotteryJobService lotteryJobService;
+
     @Override
     public Result addLottery(LotteryDTO lotteryDTO) {
         if(lotteryDTO.getStartTime().getTime() < System.currentTimeMillis() || lotteryDTO.getEndTime().getTime()< lotteryDTO.getStartTime().getTime()){
@@ -74,21 +77,23 @@ public class LotteryServiceImpl extends ServiceImpl<LotteryMapper, Lottery> impl
             }
             ArrayList<PrizeDTO> PrizeDTOs = lotteryDTO.getPrizes();
             prizeService.addPrizeList(lottery.getId(),PrizeDTOs);
+            cacheUtil.delete(CachePrefix.USERSLOTTERY.getPrefix(), lottery.getCreatedBy());
             return new Result(ResultStatue.SUCCESS,"创建成功!",null);
         }
 
         else
+
             return new Result(ResultStatue.ERROR,"创建失败!",null);
     }
 
     @Override
     public Result getYourLottery() {
         Long userId = UserContext.getId();
-        List<Long> lotterieIds = cacheUtil.queryWithMutex("lottery:user",userId,new TypeReference<List<Long>>() {}, id -> lambdaQuery().eq(Lottery::getCreatedBy,id)
+        List<Long> lotterieIds = cacheUtil.queryWithMutex(CachePrefix.USERSLOTTERY.getPrefix(),userId,new TypeReference<List<Long>>() {}, id -> lambdaQuery().eq(Lottery::getCreatedBy,id)
                 .select(Lottery::getId).list().stream().map(Lottery::getId).collect(Collectors.toList()));
         ArrayList<LotteryVO> lotteryVOS = new ArrayList<>();
         for(Long lotterieId : lotterieIds){
-            Lottery lottery = cacheUtil.queryWithMutex("lottery:obj",lotterieId,Lottery.class,this::getById);
+            Lottery lottery = cacheUtil.queryWithMutex(CachePrefix.LOTTERYOBJ.getPrefix(), lotterieId,new TypeReference<Lottery>() {},this::getById);
             List<Prize> prize = prizeService.getPrizeList(lotterieId);
             ArrayList<PrizeVO> prizeVOS = new ArrayList<>();
             for(Prize prize1 : prize){
@@ -106,7 +111,9 @@ public class LotteryServiceImpl extends ServiceImpl<LotteryMapper, Lottery> impl
 
     @Override
     public Result getLottery(Long lotteryId) {
-        Lottery lottery = cacheUtil.queryWithMutex("lottery:obj", lotteryId, Lottery.class, this::getById);
+        Lottery lottery = cacheUtil.queryWithMutex(CachePrefix.LOTTERYOBJ.getPrefix(), lotteryId, new TypeReference<Lottery>() {}, this::getById);
+        if(lottery == null)
+            return new Result(ResultStatue.SUCCESS,"查询成功！",null);
         LotteryVO lotteryVO = null;
         if(lottery != null) {
             List<Prize> prize = prizeService.getPrizeList(lotteryId);
@@ -148,24 +155,24 @@ public class LotteryServiceImpl extends ServiceImpl<LotteryMapper, Lottery> impl
             }
         lottery = BeanUtil.toBean(lotteryDTO, Lottery.class);
         lottery.setUpdatedAt(new Date());
-        cacheUtil.update("lottery:obj",lottery.getId(),lottery,Lottery.class,this::getById,this::updateById);
+        cacheUtil.update(CachePrefix.LOTTERYOBJ.getPrefix(),lottery.getId(),lottery,new TypeReference<Lottery>() {},this::getById,this::updateById);
 
         ArrayList<PrizeDTO> PrizeDTOs = lotteryDTO.getPrizes();
+
         prizeService.deletePrizeList(lotteryDTO.getId());
         prizeService.addPrizeList(lotteryDTO.getId(), PrizeDTOs);
+
+
 
         return new Result(ResultStatue.SUCCESS,"更新成功！",null);
     }
 
     @Override
     public Result stopLottery(Long id) {
-        Lottery lottery = cacheUtil.queryWithMutex("lottery:obj", id, Lottery.class, this::getById);
+        Lottery lottery = cacheUtil.queryWithMutex(CachePrefix.LOTTERYOBJ.getPrefix(), id, new TypeReference<Lottery>() {}, this::getById);
 
         if(lottery == null || lottery.getIsActive() == 0 || lottery.getIsEnd() == 1)
             return new Result(ResultStatue.ERROR,"活动已经结束,未开始或不存在！",null);
-
-        lottery.setIsActive(0);
-        lottery.setIsEnd(1);
 
         try {
             lotteryScheduler.cancelLottery(id + "#1");
@@ -174,9 +181,19 @@ public class LotteryServiceImpl extends ServiceImpl<LotteryMapper, Lottery> impl
             throw new RuntimeException(e);
         }
 
-        cacheUtil.update("lottery:obj",lottery.getId(),lottery,Lottery.class,this::getById,this::updateById);
+/*      lottery.setIsActive(0);
 
-        //TODO结果收集
+        lottery.setIsEnd(1);
+
+        cacheUtil.update(CachePrefix.LOTTERYOBJ.getPrefix(),lottery.getId(),lottery,new TypeReference<Lottery>() {},this::getById,this::updateById);
+
+        cacheUtil.delete(CachePrefix.PRIZEPOOL.getPrefix(),id);//删除奖池
+
+        cacheUtil.delete(CachePrefix.LOTTERYCOUNT.getPrefix(),id);  //删除计数表
+
+        prizeService.deleteLotteryActionCache(id,lottery.getName());//将redis抽奖记录缓存为访问，真实数据在消息队列->mysql*/
+
+        lotteryJobService.endLottery(lottery);
 
         return new Result(ResultStatue.SUCCESS,"停止成功！",null);
     }
@@ -185,14 +202,14 @@ public class LotteryServiceImpl extends ServiceImpl<LotteryMapper, Lottery> impl
     @Schema(description = "会删除所有数据，包括任务与结果")
     @Override
     public Result deleteLottery(Long id)  {
-        Lottery lottery = lambdaQuery().eq(Lottery::getId,id).one();
+        Lottery lottery =  cacheUtil.queryWithMutex(CachePrefix.LOTTERYOBJ.getPrefix(), id, new TypeReference<Lottery>() {}, this::getById);
         Long userId = UserContext.getId();
         String auth = UserContext.getAuth();
         if(!userId.equals(lottery.getCreatedBy()) && !auth.equals("admin"))
-            return new Result(ResultStatue.FORBIDDEN,"你不能删除不是你的抽奖活动！",null);
+            return new Result(ResultStatue.ERROR,"你不能删除不是你的抽奖活动！",null);
 
         if(lottery.getIsActive() == 1)
-            return new Result(ResultStatue.FORBIDDEN,"请先停止正在进行的抽奖再删除！",null);
+            return new Result(ResultStatue.ERROR,"请先停止正在进行的抽奖再删除！",null);
 
         try {
             lotteryScheduler.cancelLottery(id + "#0");
@@ -203,16 +220,18 @@ public class LotteryServiceImpl extends ServiceImpl<LotteryMapper, Lottery> impl
         }
 
         this.removeById(id);
-        cacheUtil.delete("lottery:obj",id);
+        cacheUtil.delete(CachePrefix.LOTTERYOBJ.getPrefix(),id);
         prizeService.deletePrizeList(id);
-        if(lottery.getIsEnd() == 0){
-            //todo 删除结果
-        }
-            else{
-
-        }
+        cacheUtil.delete(CachePrefix.USERSLOTTERY.getPrefix(),lottery.getCreatedBy());
         return new Result(ResultStatue.SUCCESS,"删除成功！",null);
     }
+
+    @Override
+    public Lottery getLotteryById(Long id) {
+        return cacheUtil.queryWithMutex(CachePrefix.LOTTERYOBJ.getPrefix(), id, new TypeReference<Lottery>() {}, this::getById);
+    }
+
+
 
 
 }

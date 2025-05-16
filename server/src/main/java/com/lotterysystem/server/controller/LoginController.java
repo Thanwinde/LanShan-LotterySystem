@@ -3,8 +3,7 @@ package com.lotterysystem.server.controller;
 import com.lotterysystem.server.constant.ResultStatue;
 import com.lotterysystem.server.pojo.dto.LoginDTO;
 import com.lotterysystem.server.pojo.dto.Result;
-import com.lotterysystem.server.scheduler.LotteryScheduler;
-import com.lotterysystem.server.service.UserLogin;
+import com.lotterysystem.server.service.UserLoginService;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -26,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class LoginController {
 
-    final UserLogin userLogin;
+    final UserLoginService userLogin;
 
     @Schema(description = "登录")
     @PostMapping("/admin/login")

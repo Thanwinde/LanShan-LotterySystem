@@ -23,11 +23,11 @@ public class PrizeDTO implements Serializable {
     * 奖品总数
     */
     @Schema(description = "奖品总数")
-    private Integer full_count;
+    private Integer fullCount;
     /**
     * 目前还剩数量
     */
     @Schema(description = "目前还剩数量")
-    private Integer now_count;
+    private Integer outCount;
 
 }

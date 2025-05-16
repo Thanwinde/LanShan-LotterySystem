@@ -1,6 +1,7 @@
 package com.lotterysystem.server.service;
 
 import com.lotterysystem.server.pojo.dto.PrizeDTO;
+import com.lotterysystem.server.pojo.dto.Result;
 import com.lotterysystem.server.pojo.entity.Prize;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lotterysystem.server.pojo.vo.PrizeVO;
@@ -22,4 +23,8 @@ public interface PrizeService extends IService<Prize> {
     void deletePrizeList(Long lotteryId);
 
     void addPrizeList(Long id, ArrayList<PrizeDTO> prizes);
+
+    void joinToPool(Long lotteryId);
+
+    void deleteLotteryActionCache(Long lotteryId, String lotteryName);
 }

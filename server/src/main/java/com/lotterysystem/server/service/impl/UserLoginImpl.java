@@ -6,7 +6,7 @@ import com.lotterysystem.server.constant.ResultStatue;
 import com.lotterysystem.server.mapper.UserMapper;
 import com.lotterysystem.server.pojo.dto.Result;
 import com.lotterysystem.server.pojo.entity.User;
-import com.lotterysystem.server.service.UserLogin;
+import com.lotterysystem.server.service.UserLoginService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Service;
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
  * @description
  **/
 @Service
-public class UserLoginImpl extends ServiceImpl<UserMapper, User> implements UserLogin {
+public class UserLoginImpl extends ServiceImpl<UserMapper, User> implements UserLoginService {
     @Override
     public Result AdminLogin(String name, String password , HttpServletRequest request) {
 

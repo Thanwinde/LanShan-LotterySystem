@@ -6,15 +6,12 @@
 
     <resultMap id="BaseResultMap" type="com.lotterysystem.server.pojo.entity.Prize">
             <id property="id" column="id" jdbcType="BIGINT"/>
-            <result property="lottery_id" column="lottery_id" jdbcType="BIGINT"/>
+            <result property="lotteryId" column="lottery_id" jdbcType="BIGINT"/>
             <result property="name" column="name" jdbcType="VARCHAR"/>
-            <result property="full_count" column="full_count" jdbcType="INTEGER"/>
-            <result property="now_count" column="now_count" jdbcType="INTEGER"/>
-            <result property="is_end" column="is_end" jdbcType="TINYINT"/>
+            <result property="fullCount" column="full_count" jdbcType="INTEGER"/>
+            <result property="restCount" column="rest_count" jdbcType="INTEGER"/>
+            <result property="isEnd" column="is_end" jdbcType="TINYINT"/>
     </resultMap>
 
-    <sql id="Base_Column_List">
-        id,lottery_id,name,
-        full_count,now_count,is_end
-    </sql>
+
 </mapper>

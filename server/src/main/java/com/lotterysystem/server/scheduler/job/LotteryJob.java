@@ -16,21 +16,19 @@ import org.springframework.stereotype.Component;
 @Component
 public class LotteryJob implements Job {
 
-    final CacheUtil cacheUtil;
-
     final LotteryJobService lotteryJobService;
 
     @Override
     public void execute(JobExecutionContext context) {
         String lotteryId = context.getJobDetail().getKey().getName().split("#")[0];
+        Long id = Long.valueOf(lotteryId);
         int type = context.getJobDetail().getJobDataMap().getInt("type");
 
         if(type == 0){
-            lotteryJobService.startLottery(lotteryId);
+            lotteryJobService.startLottery(id);
 
         }else if(type == 1){
-            lotteryJobService.endLottery(lotteryId);
-
+            lotteryJobService.endLottery(id);
         }
     }
 }

@@ -29,7 +29,7 @@ public class CacheUtil {
         if (StrUtil.isNotBlank(json)) {
 
             //log.info("Redis缓存命中! {}", json);
-            if(!JSONUtil.isJsonArray(json))
+
                 return JSONUtil.toBean(json,type,false);
 
         }
@@ -76,9 +76,62 @@ public class CacheUtil {
         return r;
     }
 
+    public <R, ID> R queryWithMutexWithTick(String keyPrefix, ID id, TypeReference<R> type, Function<ID, R> dbFallback) {
+        R r;
+        String key = keyPrefix +":"+ id;
+        String json = redisTemplate.opsForValue().get(key);
+        if (StrUtil.isNotBlank(json)) {
+
+            //log.info("Redis缓存命中! {}", json);
+
+            return JSONUtil.toBean(json,type,false);
+
+        }
+        if (json != null) {
+
+            //log.info("Redis空缓存命中!");
+            return null;
+
+        }
+        //没有数据，拿锁到mysql查
+        try {
 
 
-    public <ID,R> void update(String keyPrefix, ID id, R content, Class<R> type, Function<ID, R> dbFallback,Consumer<R> dbUpdate){
+            if (!tryLock(keyPrefix, id)) {
+                Thread.sleep(50);
+                return queryWithMutex(keyPrefix, id, type, dbFallback);
+            } else {
+
+
+                //log.info("成功获取锁！");
+
+                r = dbFallback.apply(id);
+
+                if (r == null) {
+                    redisTemplate.opsForValue().set(key, "", 30L + RandomUtil.randomLong(5) , TimeUnit.SECONDS);
+                    //log.info("未找到对象，添加空缓存!");
+                    return null;
+                }
+
+                json = JSONUtil.toJsonStr(r);
+                redisTemplate.opsForValue().set(key, json,  30L + RandomUtil.randomLong(5), TimeUnit.SECONDS);
+                //log.info("新增缓存: {}", json);
+
+            }
+
+        } catch (InterruptedException e) {
+
+            throw new RuntimeException(e);
+
+        } finally {
+            //log.info("成功解锁！");
+            unlock(keyPrefix,id);
+        }
+        return r;
+    }
+
+
+    public <ID,R> void update(String keyPrefix, ID id, R content, TypeReference<R> type, Function<ID, R> dbFallback,Consumer<R> dbUpdate){
         dbUpdate.accept(content);
         R r = dbFallback.apply(id);
         String key = keyPrefix +":" + id;

@@ -49,8 +49,8 @@ public class Prize implements Serializable {
     /**
     * 目前还剩数量
     */
-    @Schema(description = "目前还剩数量")
-    private Integer nowCount;
+    @Schema(description = "被抢到奖品数")
+    private Integer OutCount;
     /**
     * 该抽奖是否已经结束
     */

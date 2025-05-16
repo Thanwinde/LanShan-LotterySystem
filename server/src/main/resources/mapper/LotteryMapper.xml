@@ -8,14 +8,13 @@
             <id property="id" column="id" jdbcType="BIGINT"/>
             <result property="name" column="name" jdbcType="VARCHAR"/>
             <result property="type" column="type" jdbcType="INTEGER"/>
-            <result property="start_time" column="start_time" jdbcType="TIMESTAMP"/>
-            <result property="end_time" column="end_time" jdbcType="TIMESTAMP"/>
-            <result property="rule_config" column="rule_config" jdbcType="OTHER"/>
-            <result property="is_active" column="is_active" jdbcType="TINYINT"/>
-            <result property="created_at" column="created_at" jdbcType="TIMESTAMP"/>
-            <result property="created_by" column="created_by" jdbcType="INTEGER"/>
-            <result property="updated_at" column="updated_at" jdbcType="TIMESTAMP"/>
-            <result property="unpdated_by" column="unpdated_by" jdbcType="INTEGER"/>
+            <result property="startTime" column="start_time" jdbcType="TIMESTAMP"/>
+            <result property="endTime" column="end_time" jdbcType="TIMESTAMP"/>
+            <result property="ruleConfig" column="rule_config" jdbcType="OTHER"/>
+            <result property="isActive" column="is_active" jdbcType="TINYINT"/>
+            <result property="createdAt" column="created_at" jdbcType="TIMESTAMP"/>
+            <result property="createdBy" column="created_by" jdbcType="INTEGER"/>
+            <result property="updatedAt" column="updated_at" jdbcType="TIMESTAMP"/>
     </resultMap>
 
 </mapper>
