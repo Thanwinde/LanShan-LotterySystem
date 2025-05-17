@@ -3,16 +3,13 @@ package com.lotterysystem.server.controller;
 import com.lotterysystem.server.constant.ResultStatue;
 import com.lotterysystem.server.pojo.dto.LoginDTO;
 import com.lotterysystem.server.pojo.dto.Result;
-import com.lotterysystem.server.service.UserLoginService;
+import com.lotterysystem.server.service.UserService;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * @author nsh
@@ -23,9 +20,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-public class LoginController {
+public class UserController {
 
-    final UserLoginService userLogin;
+    final UserService userLogin;
 
     @Schema(description = "登录")
     @PostMapping("/admin/login")
@@ -36,5 +33,10 @@ public class LoginController {
             return new Result(ResultStatue.SUCCESS,"你已登录！",session.getAttribute("id"));
         }
         return userLogin.AdminLogin(loginDTO.getUsername(), loginDTO.getPassword(), request);
+    }
+
+    @GetMapping("/admin/users")
+    public Result getAllUser(@RequestParam int page){
+        return userLogin.getAllUser(page);
     }
 }

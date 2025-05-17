@@ -48,8 +48,8 @@
 
         <dependency>
             <groupId>org.springframework.amqp</groupId>
-            <artifactId>spring-rabbit-test</artifactId>
-            <scope>test</scope>
+            <artifactId>spring-rabbit</artifactId>
+            <version>3.0.1</version>
         </dependency>
 
         <dependency>

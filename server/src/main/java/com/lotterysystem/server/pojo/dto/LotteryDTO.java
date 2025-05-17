@@ -1,6 +1,6 @@
 package com.lotterysystem.server.pojo.dto;
 
-import com.lotterysystem.server.pojo.entity.Prize;
+import cn.hutool.json.JSONObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -47,7 +47,7 @@ public class LotteryDTO implements Serializable {
      */
 
     @Schema(description ="模式相关参数，如阈值、等级权重等")
-    private Object ruleConfig;
+    private JSONObject  ruleConfig;
 
     @Schema(description = "奖品池")
     private ArrayList<PrizeDTO> prizes;

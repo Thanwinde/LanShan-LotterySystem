@@ -1,6 +1,9 @@
 package com.lotterysystem.server.service.impl;
 
 import cn.hutool.core.lang.TypeReference;
+import cn.hutool.json.JSONArray;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lotterysystem.server.constant.CachePrefix;
 import com.lotterysystem.server.mapper.LotteryMapper;
@@ -9,10 +12,14 @@ import com.lotterysystem.server.service.RecordService;
 import com.lotterysystem.server.util.CacheUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author nsh
@@ -27,6 +34,8 @@ public class LotteryJobService extends ServiceImpl<LotteryMapper, Lottery> {
 
     final private CacheUtil cacheUtil;
 
+    final private RedisTemplate<String,Long> redisTemplate;
+
     final PrizeServiceImpl prizeService;
 
     final RecordServiceImpl recordService;
@@ -39,28 +48,64 @@ public class LotteryJobService extends ServiceImpl<LotteryMapper, Lottery> {
         cacheUtil.update(CachePrefix.LOTTERYOBJ.getPrefix(),lottery.getId(),lottery,new TypeReference<Lottery>() {},this::getById,this::updateById);
     }
 
+
     public void startLottery(Long lotteryId){
         //搬入奖品到redis,创表
         prizeService.joinToPool(lotteryId);
 
         Lottery lottery = getLotteryWithCache(lotteryId);
+
+        JSONObject config= JSONUtil.parseObj(lottery.getRuleConfig());
+
+        Integer time = config.getInt("time");
+        List<Long> black = config.getJSONArray("blackList").toList(Long.class);
+        List<Long> attend = config.getJSONArray("attend").toList(Long.class);
+
+
+        JSONArray array = config.getJSONArray("weightList");
+
+        Map<String, Integer> weightMap = new HashMap<>();
+        Map<String, Integer> attendMap = new HashMap<>();
+        Map<String, Integer> blackMap = new HashMap<>();
+
+        // 填充 weightMap
+        for (int i = 0; i < array.size(); i++) {
+            JSONObject weightObj = array.getJSONObject(i);
+            weightMap.put(weightObj.getLong("id").toString(), weightObj.getInt("weight"));
+        }
+        weightMap.put("-1", time);
+        // 填充 attendMap 和 blackMap
+        for (Long a : black) {
+            blackMap.put(a.toString(), 1); // 将黑名单用户添加到 blackMap
+        }
+        for (Long a : attend) {
+            attendMap.put(a.toString(), 1); // 将参与用户添加到 attendMap
+        }
+        if(attendMap.isEmpty())
+            attendMap.put("-1", 1);
+
+
+        redisTemplate.opsForHash().putAll(CachePrefix.BLACKLIST.getPrefix() + ":" + lotteryId, blackMap);
+        redisTemplate.opsForHash().putAll(CachePrefix.ATTEND.getPrefix() + ":" + lotteryId, attendMap);
+        redisTemplate.opsForHash().putAll(CachePrefix.WEIGHT.getPrefix() + ":" + lotteryId, weightMap);
+
         lottery.setIsActive(1);
         updateLotteryWithCache(lottery);
         log.info("开始抽奖：{} {}",lotteryId,lottery.getName());
     }
-
+    //结束抽奖活动，并处理表
     public void endLottery(Long lotteryId){
 
         Lottery lottery = getLotteryWithCache(lotteryId);
         lottery.setIsActive(0);
         lottery.setIsEnd(1);
         updateLotteryWithCache(lottery);
-        log.info("抽奖结束:{} {}",lotteryId,lottery.getName());
+        log.info("抽奖结束:{} {}",lotteryId,lottery.getName()); //更新状态
 
-        cacheUtil.delete(CachePrefix.PRIZEPOOL.getPrefix(), lotteryId);
-        cacheUtil.delete(CachePrefix.LOTTERYCOUNT.getPrefix(), lotteryId);
-        prizeService.deleteLotteryActionCache(lotteryId,lottery.getName());
-        recordService.refreshRecord(lotteryId);
+        cacheUtil.delete(CachePrefix.PRIZEPOOL.getPrefix(), lotteryId); //删除奖池表
+        cacheUtil.delete(CachePrefix.LOTTERYCOUNT.getPrefix(), lotteryId);  //删除用户抽奖次数表
+        prizeService.deleteLotteryActionCache(lotteryId,lottery.getName()); //更新奖品数到mysql并删表
+        recordService.refreshRecord(lotteryId); //更新Record，isend设成1，让其可以被访问（对于非延时没有用）
 
     }
 
@@ -70,11 +115,13 @@ public class LotteryJobService extends ServiceImpl<LotteryMapper, Lottery> {
         lottery.setIsEnd(1);
         updateLotteryWithCache(lottery);
         log.info("抽奖结束:{} {}",lottery.getId(),lottery.getName());
-
-        cacheUtil.delete(CachePrefix.PRIZEPOOL.getPrefix(), lottery.getId());
-        cacheUtil.delete(CachePrefix.LOTTERYCOUNT.getPrefix(), lottery.getId());
-        prizeService.deleteLotteryActionCache(lottery.getId(),lottery.getName());
-        recordService.refreshRecord(lottery.getId());
+        cacheUtil.delete(CachePrefix.PRIZEPOOL.getPrefix(), lottery.getId());   //删除奖池表
+        cacheUtil.delete(CachePrefix.LOTTERYCOUNT.getPrefix(), lottery.getId());//删除用户抽奖次数表
+        prizeService.deleteLotteryActionCache(lottery.getId(),lottery.getName());//更新奖品数到mysql并删表
+        cacheUtil.delete(CachePrefix.WEIGHT.getPrefix(), lottery.getId());  //删除权重表
+        cacheUtil.delete(CachePrefix.ATTEND.getPrefix(), lottery.getId());  //删除参与者表
+        cacheUtil.delete(CachePrefix.BLACKLIST.getPrefix(), lottery.getId());   //删除黑名单表
+        recordService.refreshRecord(lottery.getId());//更新Record，isend设成1，让其可以被访问（对于非延时没有用）
 
     }
 }

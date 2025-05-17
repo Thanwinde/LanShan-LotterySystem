@@ -5,16 +5,19 @@ import java.io.Serializable;
 
 import java.util.Date;
 
+import cn.hutool.json.JSONObject;
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import lombok.Data;
 
 
 @Data
-@TableName("lottery")
+@TableName(value = "lottery",autoResultMap = true)
 public class Lottery implements Serializable {
 
     /**
@@ -54,7 +57,8 @@ public class Lottery implements Serializable {
      */
 
     @Schema(description ="模式相关参数，如阈值、等级权重等")
-    private Object ruleConfig;
+    @TableField(value="rule_config",typeHandler = JacksonTypeHandler.class)
+    private JSONObject ruleConfig;
     /**
      * 是否启用
      */
@@ -81,7 +85,5 @@ public class Lottery implements Serializable {
 
     @Schema(description = "是否结束")
     private Integer isEnd;
-
-
 
 }

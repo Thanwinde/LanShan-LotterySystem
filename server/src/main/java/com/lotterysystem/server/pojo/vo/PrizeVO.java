@@ -35,8 +35,8 @@ public class PrizeVO implements Serializable {
     /**
      * 奖品类型
      */
-    @Schema(description = "奖品类型")
-    private Integer type;
+    @Schema(description = "奖品稀有度")
+    private Integer rarity;
     /**
      * 奖品总数
      */
@@ -45,8 +45,8 @@ public class PrizeVO implements Serializable {
     /**
      * 目前还剩数量
      */
-    @Schema(description = "目前还剩数量")
-    private Integer restCount;
+    @Schema(description = "抢到的数量")
+    private Integer outCount;
     /**
      * 该抽奖是否已经结束
      */

@@ -13,7 +13,12 @@ public enum CachePrefix {
     LOTTERYCOUNT("lottery:count"), //某个抽奖，每个人的抽数
     LOTTERRECORD("lottery:record"), //抽奖总结果
     USERSALLPRIZE("user:allrecord"),  //用户的总奖品
-    USERSPRIZE("user:record");  //用户单个抽奖的奖品
+    USERSPRIZE("user:record"),  //用户单个抽奖的奖品
+    BLACKLIST("lottery:blacklist"), //抽奖黑名单
+    WEIGHT("lottery:weight"),   //抽奖者的权重
+    ATTEND("lottery:attend"),   //允许参加的人(按id)
+    USERSALLINFO("lottery:allinfo"),    //用户创建/抽奖的所有信息
+    AlLLOTTERY("lottery:all");
     private String prefix;
 
     CachePrefix(String prefix) {

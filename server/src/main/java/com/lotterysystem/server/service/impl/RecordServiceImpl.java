@@ -43,12 +43,19 @@ public class RecordServiceImpl extends ServiceImpl<RecordMapper, Record>
     public void saveRecordByMySQL(Record record) {
         save(record);
     }
-
+    //只会返回end为1的记录
     @Override
     public Result getMyAllPrize(Long userId) {
         List<Record> records = cacheUtil.queryWithMutexWithTick(CachePrefix.USERSALLPRIZE.getPrefix(), userId, new TypeReference<List<Record>>() {
         }, id -> lambdaQuery().eq(Record::getUserId, userId).eq(Record::getIsEnd,1).list());
         return new Result(ResultStatue.SUCCESS,"查询成功!",records);
+    }
+
+    @Override
+    public List<Record> getMyAllPrizeForAPI(Long userId) {
+        List<Record> records = cacheUtil.queryWithMutexWithTick(CachePrefix.USERSALLPRIZE.getPrefix(), userId, new TypeReference<List<Record>>() {
+        }, id -> lambdaQuery().eq(Record::getUserId, userId).eq(Record::getIsEnd,1).list());
+        return records;
     }
 
     @Override

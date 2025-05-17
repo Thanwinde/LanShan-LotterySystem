@@ -39,8 +39,8 @@ public class Prize implements Serializable {
     /**
     * 奖品类型
     */
-    @Schema(description = "奖品类型")
-    private Integer type;
+    @Schema(description = "奖品稀有度")
+    private Integer rarity;
     /**
     * 奖品总数
     */

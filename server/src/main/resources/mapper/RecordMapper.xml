@@ -6,15 +6,11 @@
 
     <resultMap id="BaseResultMap" type="com.lotterysystem.server.pojo.entity.Record">
             <id property="id" column="id" jdbcType="BIGINT"/>
-            <result property="user_id" column="user_id" jdbcType="BIGINT"/>
-            <result property="lottery_id" column="lottery_id" jdbcType="BIGINT"/>
-            <result property="lottery_name" column="lottery_name" jdbcType="VARCHAR"/>
-            <result property="prize_id" column="prize_id" jdbcType="BIGINT"/>
-            <result property="prize_name" column="prize_name" jdbcType="VARCHAR"/>
+            <result property="userId" column="user_id" jdbcType="BIGINT"/>
+            <result property="lotteryId" column="lottery_id" jdbcType="BIGINT"/>
+            <result property="lotteryName" column="lottery_name" jdbcType="VARCHAR"/>
+            <result property="prizeId" column="prize_id" jdbcType="BIGINT"/>
+            <result property="prizeName" column="prize_name" jdbcType="VARCHAR"/>
     </resultMap>
 
-    <sql id="Base_Column_List">
-        id,user_id,lottery_id,
-        lottery_name,prize_id,prize_name
-    </sql>
 </mapper>

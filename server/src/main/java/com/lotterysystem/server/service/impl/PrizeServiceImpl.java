@@ -83,7 +83,7 @@ public class PrizeServiceImpl extends ServiceImpl<PrizeMapper, Prize>
         List<Prize> list = cacheUtil.queryWithMutex(CachePrefix.PRIZELIST.getPrefix(), lotteryId, new TypeReference<List<Prize>>() {}, id -> lambdaQuery().eq(Prize::getLotteryId, id).list());
         for(Prize prize:list){
             for(int i = 0;i < prize.getFullCount();i++)
-                redisTemplate.opsForSet().add(CachePrefix.PRIZEPOOL.getPrefix()+ ":" + lotteryId, prize.getId()+"#"+ i + "#" + prize.getName());
+                redisTemplate.opsForSet().add(CachePrefix.PRIZEPOOL.getPrefix()+ ":" + lotteryId, prize.getId()+"#"+ i + "#" + prize.getName() +"#" + prize.getRarity() + "#");
         }
 
     }
@@ -91,12 +91,12 @@ public class PrizeServiceImpl extends ServiceImpl<PrizeMapper, Prize>
     @Override
     public void deleteLotteryActionCache(Long lotteryId, String lotteryName){
 
-        Map<String,String> mp = redisTemplate.opsForHash().entries(CachePrefix.LOTTERRECORD.getPrefix() + ":" + lotteryId);
+        Map<String,Integer> mp = redisTemplate.opsForHash().entries(CachePrefix.LOTTERRECORD.getPrefix() + ":" + lotteryId);
         Map<Long,Integer> prizeCnt = new HashMap<>();
         redisTemplate.delete(CachePrefix.LOTTERRECORD.getPrefix() + ":" + lotteryId);
         ArrayList<Record> records = new ArrayList<>();
         Long cnt = 0L;
-        for(Map.Entry<String,String > entry:mp.entrySet()){
+        for(Map.Entry<String,Integer > entry:mp.entrySet()){
             Long userId = Long.valueOf(entry.getValue());
             String res = entry.getKey();
             String[] split = res.replace("\"", "").split("#");
@@ -111,6 +111,8 @@ public class PrizeServiceImpl extends ServiceImpl<PrizeMapper, Prize>
         log.info("将刚才的抽奖记录为访问缓存");
         //把中奖记录换到prize记录中
         for(Map.Entry<Long,Integer> entry:prizeCnt.entrySet()){
+            if (entry.getKey() == -1 || entry.getKey() == -2)
+                continue;
             Prize prize = this.lambdaQuery().eq(Prize::getId,entry.getKey()).one();
             prize.setOutCount(entry.getValue());
             prize.setIsEnd(1);

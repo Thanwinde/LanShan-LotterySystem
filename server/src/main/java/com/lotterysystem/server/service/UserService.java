@@ -8,7 +8,9 @@ import jakarta.servlet.http.HttpServletRequest;
  * @data 2025/5/10 12:32
  * @description
  **/
-public interface UserLoginService {
+public interface UserService {
 
     public Result AdminLogin(String username, String password, HttpServletRequest request);
+
+    Result getAllUser(int curPage);
 }

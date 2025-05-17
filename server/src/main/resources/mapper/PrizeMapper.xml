@@ -9,7 +9,7 @@
             <result property="lotteryId" column="lottery_id" jdbcType="BIGINT"/>
             <result property="name" column="name" jdbcType="VARCHAR"/>
             <result property="fullCount" column="full_count" jdbcType="INTEGER"/>
-            <result property="restCount" column="rest_count" jdbcType="INTEGER"/>
+            <result property="outCount" column="rest_count" jdbcType="INTEGER"/>
             <result property="isEnd" column="is_end" jdbcType="TINYINT"/>
     </resultMap>
 

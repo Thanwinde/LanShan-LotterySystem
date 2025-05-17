@@ -18,4 +18,6 @@ public class User {
     String username;
     String password;
     String authority;
+    Long qqNum;
+    String openId;
 }

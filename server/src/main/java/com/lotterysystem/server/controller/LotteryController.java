@@ -1,5 +1,8 @@
 package com.lotterysystem.server.controller;
 
+import cn.hutool.json.JSONObject;
+import com.lotterysystem.gateway.util.UserContext;
+import com.lotterysystem.server.constant.ResultStatue;
 import com.lotterysystem.server.pojo.dto.LotteryDTO;
 import com.lotterysystem.server.pojo.dto.Result;
 import com.lotterysystem.server.service.LotteryService;
@@ -19,15 +22,15 @@ import org.springframework.web.bind.annotation.*;
 public class LotteryController {
 
     final LotteryService lotteryService;
-    //TODO 实装再加上RequestBody
+
     @PostMapping
     public Result addLottery(@RequestBody LotteryDTO lotteryDTO) throws Exception {
         return lotteryService.addLottery(lotteryDTO);
     }
-
+    //获取所有的抽奖信息
     @GetMapping("/your")
-    public Result getYourLottery() {
-        return lotteryService.getYourLottery();
+    public JSONObject getAllLottery(@RequestParam int page) {
+        return lotteryService.getAllLottery(page);
     }
 
     @PutMapping
@@ -50,5 +53,13 @@ public class LotteryController {
         return lotteryService.stopLottery(id);
     }
 
+    @GetMapping("/myoverview")
+    public Result getOverview() {
+        return new Result(ResultStatue.SUCCESS,"查询成功!",lotteryService.getOverView(UserContext.getId())) ;
+    }
+    @GetMapping("/myall")
+    public Result getAllInfo(){
+        return new Result(ResultStatue.SUCCESS,"查询成功!",lotteryService.getAllInfo(UserContext.getId())) ;
+    }
 
 }

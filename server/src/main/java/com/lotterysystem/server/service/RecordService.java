@@ -5,6 +5,8 @@ import com.lotterysystem.server.pojo.entity.Record;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.springframework.scheduling.annotation.Async;
 
+import java.util.List;
+
 /**
 * @author thanw
 * @description 针对表【record】的数据库操作Service
@@ -16,6 +18,8 @@ public interface RecordService extends IService<Record> {
     void sendToQueue(String queueName, Object result);
 
     Result getMyAllPrize(Long userId);
+
+    List<Record> getMyAllPrizeForAPI(Long userId);
 
     Result getMyPrizeByLotteryId(Long lotteryId, Long userId);
 

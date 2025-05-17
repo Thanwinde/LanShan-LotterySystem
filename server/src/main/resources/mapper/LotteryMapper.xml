@@ -10,7 +10,7 @@
             <result property="type" column="type" jdbcType="INTEGER"/>
             <result property="startTime" column="start_time" jdbcType="TIMESTAMP"/>
             <result property="endTime" column="end_time" jdbcType="TIMESTAMP"/>
-            <result property="ruleConfig" column="rule_config" jdbcType="OTHER"/>
+            <result property="ruleConfig" column="rule_config" jdbcType="JAVA_OBJECT" typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"/>
             <result property="isActive" column="is_active" jdbcType="TINYINT"/>
             <result property="createdAt" column="created_at" jdbcType="TIMESTAMP"/>
             <result property="createdBy" column="created_by" jdbcType="INTEGER"/>

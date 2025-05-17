@@ -1,5 +1,6 @@
 package com.lotterysystem.server.service;
 
+import cn.hutool.json.JSONObject;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lotterysystem.server.pojo.dto.LotteryDTO;
 import com.lotterysystem.server.pojo.dto.Result;
@@ -13,8 +14,6 @@ import com.lotterysystem.server.pojo.entity.Lottery;
 public interface LotteryService {
     Result addLottery(LotteryDTO lotteryDTO) throws Exception;
 
-    Result getYourLottery();
-
     Result getLottery(Long id);
 
     Result updateLottery(LotteryDTO lotteryDTO) throws Exception;
@@ -24,4 +23,10 @@ public interface LotteryService {
     Result deleteLottery(Long id) throws Exception;
 
     Lottery getLotteryById(Long id);
+
+    JSONObject getOverView(Long userId);
+
+    JSONObject getAllInfo(Long userId);
+
+    JSONObject getAllLottery(int currentPage);
 }
