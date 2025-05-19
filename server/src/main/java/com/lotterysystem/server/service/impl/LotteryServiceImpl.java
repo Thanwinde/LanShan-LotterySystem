@@ -172,6 +172,8 @@ public class LotteryServiceImpl extends ServiceImpl<LotteryMapper, Lottery> impl
     @Override
     public Result deleteLottery(Long id)  {
         Lottery lottery =  cacheUtil.queryWithMutex(CachePrefix.LOTTERYOBJ.getPrefix(), id, new TypeReference<Lottery>() {}, this::getById);
+        if(lottery == null)
+            return new Result(ResultStatue.NOT_FOUND,"未找到活动！",null);
         Long userId = UserContext.getId();
         String auth = UserContext.getAuth();
         if(!userId.equals(lottery.getCreatedBy()) && !auth.equals("admin"))

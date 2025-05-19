@@ -21,6 +21,7 @@
         <mybatis-plus>3.5.12</mybatis-plus>
         <hutool-version>5.8.37</hutool-version>
         <lombok>1.18.30</lombok>
+        <sentinel.version>1.8.8</sentinel.version>
         <mysql.version>8.0.23</mysql.version>
     </properties>
     <dependencies>
@@ -44,7 +45,6 @@
             <version>2.2.0</version>
         </dependency>
 
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
@@ -57,6 +57,35 @@
             <version>${hutool-version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.alibaba.csp</groupId>
+            <artifactId>sentinel-core</artifactId>
+            <version>${sentinel.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.alibaba.csp</groupId>
+            <artifactId>sentinel-transport-simple-http</artifactId>
+            <version>${sentinel.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.alibaba.csp</groupId>
+            <artifactId>sentinel-annotation-aspectj</artifactId>
+            <version>${sentinel.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.alibaba.csp</groupId>
+            <artifactId>sentinel-spring-webmvc-v6x-adapter</artifactId>
+            <version>${sentinel.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.alibaba.csp</groupId>
+            <artifactId>sentinel-parameter-flow-control</artifactId>
+            <version>${sentinel.version}</version>
+        </dependency>
 
 
     </dependencies>

@@ -75,6 +75,9 @@ attend为-1则允许所有人参加
     @Override
     public Result tryGrab(Long lotteryId) {
         Lottery lottery = lotteryService.getLotteryById(lotteryId);
+        if(lottery == null){
+            return  new Result(ResultStatue.ERROR,"活动已结束或未开始！",null);
+        }
         Long userId = UserContext.getId();
         String userName = UserContext.getName();
         if(lottery.getIsEnd() == 1 || lottery.getIsActive() == 0){

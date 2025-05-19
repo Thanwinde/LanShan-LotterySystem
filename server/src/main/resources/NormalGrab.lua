@@ -47,12 +47,10 @@ if(black == 1) then
     local len2 = #component2
 
     if(tonumber(component1[len1 - 1]) > tonumber(component2[len2 - 1])) then
-        redis.call('HINCRBY', CountTableId, userId , 1)
         redis.call('HSET',RecordTable,prize1,userId)
         redis.call('SADD',poolKey,prize2)
         return prize1
     else
-        redis.call('HINCRBY', CountTableId, userId , 1)
         redis.call('HSET',RecordTable,prize2,userId)
         redis.call('SADD',poolKey,prize1)
         return prize2
@@ -86,12 +84,10 @@ if(fortune == 1) then
     local len2 = #component2
 
     if(tonumber(component1[len1 - 1]) > tonumber(component2[len2 - 1])) then
-        redis.call('HINCRBY', CountTableId, userId , 1)
         redis.call('HSET',RecordTable,prize2,userId)
         redis.call('SADD',poolKey,prize1)
         return prize2
     else
-        redis.call('HINCRBY', CountTableId, userId , 1)
         redis.call('HSET',RecordTable,prize1,userId)
         redis.call('SADD',poolKey,prize2)
         return prize1
