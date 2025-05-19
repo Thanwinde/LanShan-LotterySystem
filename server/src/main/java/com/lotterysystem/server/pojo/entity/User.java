@@ -17,7 +17,7 @@ public class User {
     Long id;
     String username;
     String password;
-    String authority;
+    Integer authority;
     Long qqNum;
     String openId;
 }

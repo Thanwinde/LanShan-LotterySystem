@@ -1,12 +1,15 @@
 package com.lotterysystem.server.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.codec.Hashids;
 import cn.hutool.core.lang.TypeReference;
 import cn.hutool.json.JSONObject;
+import com.alibaba.csp.sentinel.annotation.SentinelResource;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lotterysystem.gateway.util.UserContext;
+import com.lotterysystem.server.constant.AuthStatue;
 import com.lotterysystem.server.constant.CachePrefix;
 import com.lotterysystem.server.constant.ResultStatue;
 
@@ -54,7 +57,10 @@ public class LotteryServiceImpl extends ServiceImpl<LotteryMapper, Lottery> impl
 
     final RecordService recordService;
 
+    Hashids hashids = Hashids.create(Hashids.DEFAULT_ALPHABET,6);
+
     @Override
+    @Schema(description = "新增抽奖活动")
     public Result addLottery(LotteryDTO lotteryDTO) {
         if(lotteryDTO.getStartTime().getTime() < System.currentTimeMillis() || lotteryDTO.getEndTime().getTime()< lotteryDTO.getStartTime().getTime()){
             return new Result(ResultStatue.ERROR,"创建失败!时间不合法!",null);
@@ -79,19 +85,23 @@ public class LotteryServiceImpl extends ServiceImpl<LotteryMapper, Lottery> impl
                 log.error("新建出错！{}",lottery);
                 throw new RuntimeException(e);
             }
+            JSONObject json= lotteryDTO.getRuleConfig();
+            String password = null;
+            if( (int)json.get("password") == 1 ){
+                password = hashids.encode(lottery.getId());
+            }
             ArrayList<PrizeDTO> PrizeDTOs = lotteryDTO.getPrizes();
             prizeService.addPrizeList(lottery.getId(),PrizeDTOs);
             cacheUtil.delete(CachePrefix.USERSLOTTERY.getPrefix(), lottery.getCreatedBy());
-            return new Result(ResultStatue.SUCCESS,"创建成功!",null);
+                return new Result(ResultStatue.SUCCESS,"创建成功!",password);
+
         }
-
         else
-
             return new Result(ResultStatue.ERROR,"创建失败!",null);
     }
 
-
     @Override
+    @Schema(description = "获得抽奖信息，只会获得抽奖和奖品属性信息，不是很消耗性能")
     public Result getLottery(Long lotteryId) {
         Lottery lottery = cacheUtil.queryWithMutex(CachePrefix.LOTTERYOBJ.getPrefix(), lotteryId, new TypeReference<Lottery>() {}, this::getById);
         if(lottery == null)
@@ -111,12 +121,13 @@ public class LotteryServiceImpl extends ServiceImpl<LotteryMapper, Lottery> impl
     }
 
     @Override
+    @Schema(description = "更新抽奖，比较吃性能")
     public Result updateLottery(LotteryDTO lotteryDTO) {
         Lottery lottery = lambdaQuery().eq(Lottery::getId,lotteryDTO.getId()).one();
         Long userId = UserContext.getId();
-        String auth = UserContext.getAuth();
+        Integer auth = UserContext.getAuth();
 
-        if(!userId.equals(lottery.getCreatedBy()) && !auth.equals("admin"))
+        if(!userId.equals(lottery.getCreatedBy()) && auth != AuthStatue.ADMIN.getCode())
             return new Result(ResultStatue.FORBIDDEN,"你不能更改不是你发布的抽奖活动！",null);
         if(lottery.getIsActive() == 1)
             return new Result(ResultStatue.ERROR,"已经开始，无法修改抽奖内容!请先停止再取消！",null);
@@ -149,6 +160,7 @@ public class LotteryServiceImpl extends ServiceImpl<LotteryMapper, Lottery> impl
     }
 
     @Override
+    @Schema(description = "提前停止抽奖活动,比较吃性能")
     public Result stopLottery(Long id) {
         Lottery lottery = cacheUtil.queryWithMutex(CachePrefix.LOTTERYOBJ.getPrefix(), id, new TypeReference<Lottery>() {}, this::getById);
 
@@ -156,7 +168,7 @@ public class LotteryServiceImpl extends ServiceImpl<LotteryMapper, Lottery> impl
             return new Result(ResultStatue.ERROR,"活动已经结束,未开始或不存在！",null);
 
         try {
-            lotteryScheduler.cancelLottery(id + "#1");
+            lotteryScheduler.cancelLottery(id + "#1");  //取消定时任务
         } catch (Exception e) {
             log.error("尝试取消失败！{}",id);
             throw new RuntimeException(e);
@@ -175,8 +187,8 @@ public class LotteryServiceImpl extends ServiceImpl<LotteryMapper, Lottery> impl
         if(lottery == null)
             return new Result(ResultStatue.NOT_FOUND,"未找到活动！",null);
         Long userId = UserContext.getId();
-        String auth = UserContext.getAuth();
-        if(!userId.equals(lottery.getCreatedBy()) && !auth.equals("admin"))
+        Integer auth = UserContext.getAuth();
+        if(!userId.equals(lottery.getCreatedBy()) && auth != AuthStatue.ADMIN.getCode())
             return new Result(ResultStatue.ERROR,"你不能删除不是你的抽奖活动！",null);
 
         if(lottery.getIsActive() == 1)
@@ -218,6 +230,7 @@ public class LotteryServiceImpl extends ServiceImpl<LotteryMapper, Lottery> impl
 
 
     @Override
+    @Schema(description = "获取自己创建的抽奖的所有信息，包括得奖信息，非常巨大，耗性能")
     public JSONObject getAllInfo(Long userId){
         List<Record> records = recordService.getMyAllPrizeForAPI(userId);
         List<Long> lotterieIds = cacheUtil.queryWithMutex(CachePrefix.USERSLOTTERY.getPrefix(),userId,new TypeReference<List<Long>>() {}, id -> lambdaQuery().eq(Lottery::getCreatedBy,id)
@@ -245,11 +258,10 @@ public class LotteryServiceImpl extends ServiceImpl<LotteryMapper, Lottery> impl
         return result;
     }
 
-
     @Override
     public JSONObject getAllLottery(int currentPage) {
-        String auth = UserContext.getAuth();
-        if(!auth .equals("admin"))
+        Integer auth = UserContext.getAuth();
+        if(auth != AuthStatue.ADMIN.getCode())
             return null;
         int pageSize = 100;
         IPage<Lottery> page = new Page<>(currentPage, pageSize);
@@ -259,6 +271,8 @@ public class LotteryServiceImpl extends ServiceImpl<LotteryMapper, Lottery> impl
 
         return json;
     }
+
+
 
 
 }

@@ -1,6 +1,8 @@
 package com.lotterysystem.server.controller;
 
+import cn.hutool.core.codec.Hashids;
 import com.lotterysystem.gateway.util.UserContext;
+import com.lotterysystem.server.constant.ResultStatue;
 import com.lotterysystem.server.pojo.dto.Result;
 import com.lotterysystem.server.service.LotteryActionService;
 import com.lotterysystem.server.service.RecordService;
@@ -23,9 +25,22 @@ public class PrizeController {
 
     private final RecordService recordService;
 
-    @PostMapping
+    Hashids hashids = Hashids.create(Hashids.DEFAULT_ALPHABET,6);
+
+    @PostMapping("/grab")
     public Result grabPrize(@RequestBody Long lotteryId) {
         return lotteryAction.tryGrab(lotteryId);
+    }
+
+    @PostMapping("/passgrab")
+    public Result passGrabPrize(@RequestBody String password) {
+        long[] lotteryid;
+        try{
+            lotteryid = hashids.decode(password);
+        }catch (Exception e){
+            return new Result(ResultStatue.FORBIDDEN,"抽奖邀请码不存在或错误！",null);
+        }
+        return lotteryAction.tryGrab(lotteryid[0]);
     }
 
     @GetMapping

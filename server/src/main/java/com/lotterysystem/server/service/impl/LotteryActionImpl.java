@@ -2,6 +2,7 @@ package com.lotterysystem.server.service.impl;
 
 import cn.hutool.core.io.resource.ResourceUtil;
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.json.JSONObject;
 import com.lotterysystem.gateway.util.UserContext;
 import com.lotterysystem.server.constant.CachePrefix;
 import com.lotterysystem.server.constant.ResultStatue;
@@ -75,9 +76,13 @@ attend为-1则允许所有人参加
     @Override
     public Result tryGrab(Long lotteryId) {
         Lottery lottery = lotteryService.getLotteryById(lotteryId);
+
+
+
         if(lottery == null){
             return  new Result(ResultStatue.ERROR,"活动已结束或未开始！",null);
         }
+
         Long userId = UserContext.getId();
         String userName = UserContext.getName();
         if(lottery.getIsEnd() == 1 || lottery.getIsActive() == 0){

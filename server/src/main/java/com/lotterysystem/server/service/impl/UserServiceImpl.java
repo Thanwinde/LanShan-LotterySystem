@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lotterysystem.gateway.util.UserContext;
+import com.lotterysystem.server.constant.AuthStatue;
 import com.lotterysystem.server.constant.ResultStatue;
 
 import com.lotterysystem.server.mapper.UserMapper;
@@ -40,8 +41,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     public Result getAllUser(int curPage){
-        String auth = UserContext.getAuth();
-        if(!auth.equals("admin")){
+        Integer auth = UserContext.getAuth();
+        if(auth != AuthStatue.ADMIN.getCode()){
             return new Result(ResultStatue.SUCCESS,"无权限！",null);
         }
         int pageSize = 100;
