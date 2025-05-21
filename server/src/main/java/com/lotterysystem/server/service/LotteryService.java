@@ -1,10 +1,10 @@
 package com.lotterysystem.server.service;
 
-import cn.hutool.json.JSONObject;
-import com.baomidou.mybatisplus.extension.service.IService;
 import com.lotterysystem.server.pojo.dto.LotteryDTO;
 import com.lotterysystem.server.pojo.dto.Result;
 import com.lotterysystem.server.pojo.entity.Lottery;
+
+import java.util.List;
 
 /**
 * @author thanw
@@ -22,11 +22,11 @@ public interface LotteryService {
 
     Result deleteLottery(Long id) throws Exception;
 
-    Lottery getLotteryById(Long id);
+    Lottery getLotteryByIdForAPI(Long id);
 
-    JSONObject getOverView(Long userId);
+    List<Lottery> getAllMyLottery(Long userId);
 
-    JSONObject getAllInfo(Long userId);
+    List<Lottery> getAllLottery(int currentPage);
 
-    JSONObject getAllLottery(int currentPage);
+    List<Lottery> getAllJoinLottery(Long id);
 }

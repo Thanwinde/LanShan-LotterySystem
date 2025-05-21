@@ -23,5 +23,7 @@ public interface RecordService extends IService<Record> {
 
     Result getMyPrizeByLotteryId(Long lotteryId, Long userId);
 
+    List<Record> getRecordsByLotteryId(Long lotteryId);
+
     void refreshRecord(Long lotteryId);
 }

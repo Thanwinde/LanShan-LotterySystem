@@ -7,11 +7,14 @@ import com.lotterysystem.server.constant.AuthStatue;
 import com.lotterysystem.server.constant.ResultStatue;
 import com.lotterysystem.server.pojo.dto.LotteryDTO;
 import com.lotterysystem.server.pojo.dto.Result;
+import com.lotterysystem.server.pojo.entity.Lottery;
 import com.lotterysystem.server.service.LotteryService;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * @author nsh
@@ -34,9 +37,9 @@ public class LotteryController {
         return lotteryService.addLottery(lotteryDTO);
     }
 
-    //获取所有的抽奖信息（只有抽奖）
-    @GetMapping("/your")
-    public JSONObject getAllLottery(@RequestParam int page) {
+    //获取所有的抽奖信息（只有抽奖，管理员用）
+    @GetMapping("/admin/all")
+    public List<Lottery> getAllLottery(@RequestParam int page) {
         return lotteryService.getAllLottery(page);
     }
 
@@ -69,14 +72,14 @@ public class LotteryController {
         return lotteryService.stopLottery(id);
     }
 
-    @GetMapping("/myoverview")
+    @GetMapping("/icreate")
     public Result getOverview() {
-        return new Result(ResultStatue.SUCCESS,"查询成功!",lotteryService.getOverView(UserContext.getId())) ;
+        return new Result(ResultStatue.SUCCESS,"查询成功!",lotteryService.getAllMyLottery(UserContext.getId())) ;
     }
 
-    @GetMapping("/myall")
+    @GetMapping("/ijoin")
     public Result getAllInfo(){
-        return new Result(ResultStatue.SUCCESS,"查询成功!",lotteryService.getAllInfo(UserContext.getId())) ;
+        return new Result(ResultStatue.SUCCESS,"查询成功!",lotteryService.getAllJoinLottery(UserContext.getId())) ;
     }
 
     public boolean chooseLimiter(){

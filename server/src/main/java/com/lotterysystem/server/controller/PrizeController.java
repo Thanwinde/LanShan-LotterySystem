@@ -6,8 +6,7 @@ import com.lotterysystem.server.constant.ResultStatue;
 import com.lotterysystem.server.pojo.dto.Result;
 import com.lotterysystem.server.service.LotteryActionService;
 import com.lotterysystem.server.service.RecordService;
-import com.lotterysystem.server.service.impl.LotteryActionImpl;
-import com.lotterysystem.server.service.impl.LotteryJobService;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -44,6 +43,7 @@ public class PrizeController {
     }
 
     @GetMapping
+    @Schema(description = "获取用户获奖记录（参数为-1），否则就是给出对应抽奖的记录")
     public Result getMyPrize(@RequestParam("lotteryid") Long lotteryId) {
         Long userId = UserContext.getId();
         if(lotteryId == -1)

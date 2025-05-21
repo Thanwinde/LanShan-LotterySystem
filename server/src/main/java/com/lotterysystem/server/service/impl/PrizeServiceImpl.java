@@ -23,6 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
 * @author thanw
@@ -91,25 +93,10 @@ public class PrizeServiceImpl extends ServiceImpl<PrizeMapper, Prize>
     @Override
     public void deleteLotteryActionCache(Long lotteryId, String lotteryName){
 
-        Map<String,Integer> mp = redisTemplate.opsForHash().entries(CachePrefix.LOTTERRECORD.getPrefix() + ":" + lotteryId);
-        Map<Long,Integer> prizeCnt = new HashMap<>();
-        redisTemplate.delete(CachePrefix.LOTTERRECORD.getPrefix() + ":" + lotteryId);
-        ArrayList<Record> records = new ArrayList<>();
-        Long cnt = 0L;
-        for(Map.Entry<String,Integer > entry:mp.entrySet()){
-            Long userId = Long.valueOf(entry.getValue());
-            String res = entry.getKey();
-            String[] split = res.replace("\"", "").split("#");
-            Long prizeId = Long.valueOf(split[0]);
-            String prizeName = split[2];
-            records.add(new Record().setId(cnt++).setUserId(userId).setLotteryId(lotteryId).setLotteryName(lotteryName).setPrizeId(prizeId).setPrizeName(prizeName).setIsEnd(1));
-            prizeCnt.compute(prizeId,(key, value) -> value == null ? 1 : value + 1);
-        }
+        log.info("结束抽奖：{},{},尝试开放抽奖记录",lotteryId,lotteryName);
 
-        String json = JSONUtil.toJsonStr(records);
-        redisTemplate.opsForValue().set(CachePrefix.LOTTERRECORD.getPrefix() + ":" + lotteryId, records,30L * 60 + RandomUtil.randomLong(15), TimeUnit.SECONDS);
-        log.info("将刚才的抽奖记录为访问缓存");
-        //把中奖记录换到prize记录中
+        Map<Long,Integer> prizeCnt = new HashMap<>();
+
         for(Map.Entry<Long,Integer> entry:prizeCnt.entrySet()){
             if (entry.getKey() == -1 || entry.getKey() == -2)
                 continue;
@@ -118,6 +105,28 @@ public class PrizeServiceImpl extends ServiceImpl<PrizeMapper, Prize>
             prize.setIsEnd(1);
             this.updateById(prize);
         }
+
+        List<Long> ids = prizeCnt.keySet().stream()
+                .filter(id -> id != -1 && id != -2)
+                .collect(Collectors.toList());
+
+        Map<Long, Prize> prizeMap = this.listByIds(ids).stream()
+                .collect(Collectors.toMap(Prize::getId, Function.identity()));
+
+        List<Prize> updateList = new ArrayList<>();
+
+        for (Map.Entry<Long, Integer> entry : prizeCnt.entrySet()) {
+
+            Prize prize = prizeMap.get(entry.getKey());
+            if (prize == null) continue;
+
+            prize.setOutCount(entry.getValue());
+            prize.setIsEnd(1);
+            updateList.add(prize);
+        }
+
+        this.updateBatchById(updateList);
+
     }
 
 

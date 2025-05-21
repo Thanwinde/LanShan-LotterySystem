@@ -3,12 +3,14 @@ package com.lotterysystem.server.pojo.vo;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.lotterysystem.server.pojo.dto.PrizeDTO;
+import com.lotterysystem.server.pojo.entity.Record;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Data
 public class LotteryVO implements Serializable {
@@ -75,5 +77,8 @@ public class LotteryVO implements Serializable {
 
     @Schema(description = "奖品池")
     private ArrayList<PrizeVO> prizes;
+
+    @Schema(description = "中奖记录")
+    private List<Record> records;
 
 }

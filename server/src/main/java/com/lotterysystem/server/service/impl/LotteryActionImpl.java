@@ -2,7 +2,6 @@ package com.lotterysystem.server.service.impl;
 
 import cn.hutool.core.io.resource.ResourceUtil;
 import cn.hutool.core.util.RandomUtil;
-import cn.hutool.json.JSONObject;
 import com.lotterysystem.gateway.util.UserContext;
 import com.lotterysystem.server.constant.CachePrefix;
 import com.lotterysystem.server.constant.ResultStatue;
@@ -51,31 +50,10 @@ public class LotteryActionImpl implements LotteryActionService {
         normalGrabScript.setScriptText(normalGrabLua);
         normalGrabScript.setResultType(String.class);
     }
-    /*
-{
-    "blackList": [
-        1
-    ],
-    "weightList": [
-        {
-            "id": 123,
-            "weight": 20
-        },
-        {
-            "id": 567,
-            "weight": 50
-        }
-    ],
-    "attend": [
-        3204789832
-    ]
-}
-attend为-1则允许所有人参加
-     */
 
     @Override
     public Result tryGrab(Long lotteryId) {
-        Lottery lottery = lotteryService.getLotteryById(lotteryId);
+        Lottery lottery = lotteryService.getLotteryByIdForAPI(lotteryId);
 
 
 

@@ -4,7 +4,6 @@ package com.lotterysystem.server.util;
 import cn.hutool.core.lang.TypeReference;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONUtil;
 
 import lombok.extern.slf4j.Slf4j;
@@ -13,9 +12,13 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+
 @Component
 @Slf4j
 public class CacheUtil {
@@ -129,6 +132,44 @@ public class CacheUtil {
         }
         return r;
     }
+
+    public <R, ID> List<R> MultiQueryWithMutex(String keyPrefix, List<ID> ids, TypeReference<R> type, Function<ID, R> dbFallback) {
+
+        List<String> idStrs = ids.stream().map(id -> keyPrefix + ":" + id).collect(Collectors.toList());
+
+        List<R> result = new ArrayList<>();
+        // 1. 批量从 Redis Hash 中查询
+        List<String> cachedJsons = redisTemplate.opsForValue().multiGet(idStrs);
+
+        for(int i = 0;i < idStrs.size();i++) {
+            if(cachedJsons.get(i) == null){
+                result.add(queryWithMutex(keyPrefix,ids.get(i),type,dbFallback));
+            }else
+                result.add(JSONUtil.toBean(cachedJsons.get(i),type,false));
+        }
+
+        return result;
+    }
+
+    public <R, ID> List<R> MultiQueryWithMutexWithTick(String keyPrefix, List<ID> ids, TypeReference<R> type, Function<ID, R> dbFallback) {
+
+        List<String> idStrs = ids.stream().map(id -> keyPrefix + ":" + id).collect(Collectors.toList());
+
+        List<R> result = new ArrayList<>();
+        // 1. 批量从 Redis Hash 中查询
+        List<String> cachedJsons = redisTemplate.opsForValue().multiGet(idStrs);
+
+        for(int i = 0;i < idStrs.size();i++) {
+            if(cachedJsons.get(i) == null){
+                result.add(queryWithMutexWithTick(keyPrefix,ids.get(i),type,dbFallback));
+            }else
+                result.add(JSONUtil.toBean(cachedJsons.get(i),type,false));
+        }
+
+        return result;
+    }
+
+
 
 
     public <ID,R> void update(String keyPrefix, ID id, R content, TypeReference<R> type, Function<ID, R> dbFallback,Consumer<R> dbUpdate){

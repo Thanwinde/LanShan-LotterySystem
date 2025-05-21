@@ -4,7 +4,6 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.codec.Hashids;
 import cn.hutool.core.lang.TypeReference;
 import cn.hutool.json.JSONObject;
-import com.alibaba.csp.sentinel.annotation.SentinelResource;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -36,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
 /**
  * @author nsh
  * @data 2025/5/10 14:43
@@ -101,13 +101,13 @@ public class LotteryServiceImpl extends ServiceImpl<LotteryMapper, Lottery> impl
     }
 
     @Override
-    @Schema(description = "获得抽奖信息，只会获得抽奖和奖品属性信息，不是很消耗性能")
-    public Result getLottery(Long lotteryId) {
+    @Schema(description = "获得一个抽奖的信息,包括奖池，如果已经结束了还会给出中奖信息")
+    public Result<LotteryVO> getLottery(Long lotteryId) {
         Lottery lottery = cacheUtil.queryWithMutex(CachePrefix.LOTTERYOBJ.getPrefix(), lotteryId, new TypeReference<Lottery>() {}, this::getById);
         if(lottery == null)
             return new Result(ResultStatue.SUCCESS,"查询成功！",null);
-        LotteryVO lotteryVO = null;
-        if(lottery != null) {
+        LotteryVO lotteryVO;
+
             List<Prize> prize = prizeService.getPrizeList(lotteryId);
             ArrayList<PrizeVO> prizeVOS = new ArrayList<>();
             for (Prize prize1 : prize) {
@@ -116,8 +116,12 @@ public class LotteryServiceImpl extends ServiceImpl<LotteryMapper, Lottery> impl
             }
             lotteryVO = BeanUtil.copyProperties(lottery, LotteryVO.class);
             lotteryVO.setPrizes(prizeVOS);
-        }
-        return new Result(ResultStatue.SUCCESS,"查询成功！",lotteryVO);
+            if(lottery.getIsEnd() == 1){
+                List<Record> recordsByLotteryId = recordService.getRecordsByLotteryId(lotteryId);
+                lotteryVO.setRecords(recordsByLotteryId);
+            }
+
+        return new Result<>(ResultStatue.SUCCESS,"查询成功！",lotteryVO);
     }
 
     @Override
@@ -148,6 +152,7 @@ public class LotteryServiceImpl extends ServiceImpl<LotteryMapper, Lottery> impl
             }
         lottery = BeanUtil.toBean(lotteryDTO, Lottery.class);
         lottery.setUpdatedAt(new Date());
+
         cacheUtil.update(CachePrefix.LOTTERYOBJ.getPrefix(),lottery.getId(),lottery,new TypeReference<Lottery>() {},this::getById,this::updateById);
 
         ArrayList<PrizeDTO> PrizeDTOs = lotteryDTO.getPrizes();
@@ -210,69 +215,49 @@ public class LotteryServiceImpl extends ServiceImpl<LotteryMapper, Lottery> impl
     }
 
     @Override
-    public Lottery getLotteryById(Long id) {
+    @Schema(description = "给其他接口用的")
+    public Lottery getLotteryByIdForAPI(Long id) {
         return cacheUtil.queryWithMutex(CachePrefix.LOTTERYOBJ.getPrefix(), id, new TypeReference<Lottery>() {}, this::getById);
     }
 
+    @Schema(description = "获取自己创建的抽奖的信息，不包括奖品等内容")
     @Override
-    public JSONObject getOverView(Long userId){
-        JSONObject jsonObject = cacheUtil.queryWithMutexWithTick(CachePrefix.USERSALLINFO.getPrefix(), userId, new TypeReference<JSONObject>() {
-        }, this::getAllInfo);
-        JSONObject json = new JSONObject();
-        Integer creatLotteryCnt = (Integer) jsonObject.get("YourCreatLotteryCnt");
-        Integer joinLotteryCnt = (Integer) jsonObject.get("YourJoinLotteryCnt");
-        Integer rewardCnt = (Integer) jsonObject.get("YourRewardCnt");
-        json.putOnce("YourCreatLotteryCnt", creatLotteryCnt);
-        json.putOnce("YourJoinLotteryCnt", joinLotteryCnt);
-        json.putOnce("YourRewardCnt", rewardCnt);
-        return json;
+    public List<Lottery> getAllMyLottery(Long userId){
+        List<Long> lotteryIds = cacheUtil.queryWithMutex(CachePrefix.USERSLOTTERY.getPrefix(),userId,new TypeReference<List<Long>>() {},
+                id -> lambdaQuery().eq(Lottery::getCreatedBy,id).select(Lottery::getId).list().stream().map(Lottery::getId).collect(Collectors.toList()));
+        return cacheUtil.MultiQueryWithMutex(CachePrefix.LOTTERYOBJ.getPrefix(), lotteryIds, new TypeReference<Lottery>() {}, this::getById);
     }
 
 
     @Override
-    @Schema(description = "获取自己创建的抽奖的所有信息，包括得奖信息，非常巨大，耗性能")
-    public JSONObject getAllInfo(Long userId){
-        List<Record> records = recordService.getMyAllPrizeForAPI(userId);
-        List<Long> lotterieIds = cacheUtil.queryWithMutex(CachePrefix.USERSLOTTERY.getPrefix(),userId,new TypeReference<List<Long>>() {}, id -> lambdaQuery().eq(Lottery::getCreatedBy,id)
-                .select(Lottery::getId).list().stream().map(Lottery::getId).collect(Collectors.toList()));
-        Map<Long,List<Record>> recordMap = new HashMap<>();
-        Integer lotteryCnt = 0,rewardCnt = 0;
-        for(Record record : records){
-            if(record.getPrizeId() != -2 && record.getPrizeId() != -1 && !record.getPrizeName().equals("null")){
-                rewardCnt++;
-            }
-            recordMap.computeIfAbsent(record.getLotteryId(), k -> new ArrayList<>()).add(record);
-        }
-        JSONObject result = new JSONObject();
-
-        JSONObject join = new JSONObject();
-        for(Map.Entry<Long,List<Record>> entry : recordMap.entrySet()){
-            join.putOnce(entry.getKey().toString(),entry.getValue());
-            lotteryCnt++;
-        }
-        result.putOnce("YourCreatLotteryCnt",lotterieIds.size());
-        result.putOnce("YourJoinLotteryCnt", lotteryCnt);
-        result.putOnce("YourRewardCnt", rewardCnt);
-        result.putOnce("YourLottery",lotterieIds);
-        result.putOnce("record",join);
-        return result;
-    }
-
-    @Override
-    public JSONObject getAllLottery(int currentPage) {
+    @Schema(description = "获得所有抽奖活动的信息，给管理员用,无缓存")
+    public List<Lottery> getAllLottery(int currentPage) {
         Integer auth = UserContext.getAuth();
         if(auth != AuthStatue.ADMIN.getCode())
             return null;
         int pageSize = 100;
         IPage<Lottery> page = new Page<>(currentPage, pageSize);
-        List<Lottery> lotterieIds = list(page);
-        JSONObject json = new JSONObject();
-        json.putOnce("AllLottery",lotterieIds);
+        List<Lottery> lotteries = list(page);
 
-        return json;
+        return lotteries;
     }
 
-
-
+    @Override
+    public List<Lottery> getAllJoinLottery(Long userId) {
+        List<Record> records = recordService.getMyAllPrizeForAPI(userId);
+        Map<Long,List<Record>> recordMap = new HashMap<>();
+        List<Long> lotteryIds = new ArrayList<>();
+        List<Lottery> lotteries = new ArrayList<>();
+        for(Record record : records){
+            if(!recordMap.containsKey(record.getId())){
+                recordMap.put(record.getId(),new ArrayList<>());
+                lotteryIds.add(record.getLotteryId());
+            }
+        }
+        for(Long lotteryId : lotteryIds){
+            lotteries.add(getLotteryByIdForAPI(lotteryId));
+        }
+        return lotteries;
+    }
 
 }
