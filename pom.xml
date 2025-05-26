@@ -13,18 +13,21 @@
         <module>server</module>
     </modules>
     <properties>
-        <java.version>19</java.version>
+        <java.version>21</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <spring-boot.version>3.0.2</spring-boot.version>
+        <spring-boot.version>3.1.12</spring-boot.version>
         <spring-cloud.version>2022.0.0-RC2</spring-cloud.version>
         <mybatis-plus>3.5.12</mybatis-plus>
+        <dynamic-datasource>4.3.1</dynamic-datasource>
         <hutool-version>5.8.37</hutool-version>
         <lombok>1.18.30</lombok>
         <sentinel.version>1.8.8</sentinel.version>
         <mysql.version>8.0.23</mysql.version>
+
     </properties>
     <dependencies>
+
 
 
         <dependency>
@@ -32,6 +35,7 @@
             <artifactId>spring-boot-starter-tomcat</artifactId>
             <scope>provided</scope>
         </dependency>
+
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -75,18 +79,17 @@
             <version>${sentinel.version}</version>
         </dependency>
 
-        <dependency>
+<!--        <dependency>
             <groupId>com.alibaba.csp</groupId>
             <artifactId>sentinel-spring-webmvc-v6x-adapter</artifactId>
             <version>${sentinel.version}</version>
-        </dependency>
+        </dependency>-->
 
         <dependency>
             <groupId>com.alibaba.csp</groupId>
             <artifactId>sentinel-parameter-flow-control</artifactId>
             <version>${sentinel.version}</version>
         </dependency>
-
 
     </dependencies>
 
@@ -105,6 +108,8 @@
                 <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
                 <version>${mybatis-plus}</version>
             </dependency>
+
+
 
             <dependency>
                 <groupId>org.projectlombok</groupId>
@@ -144,13 +149,13 @@
                 <version>${spring-boot.version}</version>
             </dependency>
 
-
-
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>dynamic-datasource-spring-boot3-starter</artifactId>
+                <version>${dynamic-datasource}</version>
+            </dependency>
 
         </dependencies>
-
-
-
 
     </dependencyManagement>
 
@@ -174,17 +179,17 @@
                     <artifactId>spring-boot-maven-plugin</artifactId>
                     <version>${spring-boot.version}</version>
                     <configuration>
-                        <mainClass>com.lotterysystem.LotterySystemApplication</mainClass>
-                        <skip>true</skip>
+                        <mainClass>com.lotterysystem.server.Start</mainClass>
+                        <!--<skip>true</skip>-->
                     </configuration>
-                    <executions>
-                        <execution>
-                            <id>repackage</id>
-                            <goals>
-                                <goal>repackage</goal>
-                            </goals>
-                        </execution>
-                    </executions>
+<!--                    <executions>-->
+<!--                        <execution>-->
+<!--                            <id>repackage</id>-->
+<!--                            <goals>-->
+<!--                                <goal>repackage</goal>-->
+<!--                            </goals>-->
+<!--                        </execution>-->
+<!--                    </executions>-->
                 </plugin>
             </plugins>
         </pluginManagement>

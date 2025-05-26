@@ -42,8 +42,8 @@ public class UserContextInterceptor implements HandlerInterceptor {
         }
         boolean sign;
         String url = request.getRequestURI();
-        if("/api/prize/grab".equals(url)){
-            sign = GlobeLimiter.tryGrabAccess(userid);
+        if("/api/prize/grab".equals(url) || "/api/prize/passgrab".equals(url)) {
+            sign = GlobeLimiter.tryUserGrabAccess(userid) && GlobeLimiter.tryGlobalGrabAccess();
         } else {
             if (auth == AuthStatue.USER.getCode()) {
                 sign = GlobeLimiter.tryUserAccess(userid);

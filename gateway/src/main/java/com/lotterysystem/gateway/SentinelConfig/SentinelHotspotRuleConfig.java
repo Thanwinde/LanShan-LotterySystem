@@ -51,10 +51,10 @@ public class SentinelHotspotRuleConfig {
                 .setCount(5);
 
         //对抽奖行为的限流
-        ParamFlowRule GrabRule = new ParamFlowRule("grab-qps")
+        ParamFlowRule GrabRule = new ParamFlowRule("grab-user")
                 .setParamIdx(0)
                 .setGrade(RuleConstant.FLOW_GRADE_QPS)
-                .setCount(10);
+                .setCount(5000);
 
         ParamFlowRuleManager.loadRules(Arrays.asList(userRule, adminRule,bannedRule,normalRule,UserLotteryActionRule,AdminLotteryActionRule,GrabRule));
     }

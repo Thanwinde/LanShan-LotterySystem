@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.lang.TypeReference;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSONUtil;
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lotterysystem.server.constant.CachePrefix;
@@ -13,15 +14,18 @@ import com.lotterysystem.server.pojo.entity.Record;
 import com.lotterysystem.server.pojo.vo.PrizeVO;
 import com.lotterysystem.server.service.PrizeService;
 import com.lotterysystem.server.mapper.PrizeMapper;
+import com.lotterysystem.server.service.RecordService;
 import com.lotterysystem.server.util.CacheUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -41,9 +45,12 @@ public class PrizeServiceImpl extends ServiceImpl<PrizeMapper, Prize>
 
     final private CacheUtil cacheUtil;
 
+    final private RecordService recordService;
+
     private final RedisTemplate redisTemplate;
 
     @Override
+    @DS("slave")
     public ArrayList<PrizeVO> getPrizeVOList(Long lotteryId){
         List<Prize> list = cacheUtil.queryWithMutex(CachePrefix.PRIZELIST.getPrefix(), lotteryId, new TypeReference<List<Prize>>() {}, id -> lambdaQuery().eq(Prize::getLotteryId, id).list());
         ArrayList<PrizeVO> prizeVOList = new ArrayList<>();
@@ -61,6 +68,7 @@ public class PrizeServiceImpl extends ServiceImpl<PrizeMapper, Prize>
     }
 
     @Override
+    @DS("master")
     public void deletePrizeList(Long lotteryId){
         QueryWrapper<Prize> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("lottery_id", lotteryId);
@@ -69,6 +77,7 @@ public class PrizeServiceImpl extends ServiceImpl<PrizeMapper, Prize>
     }
 
     @Override
+    @DS("master")
     public void addPrizeList(Long lotteryId, ArrayList<PrizeDTO> prizes) {
         ArrayList<Prize> prizesList = new ArrayList<>();
         for (PrizeDTO prizeDTO : prizes) {
@@ -76,57 +85,60 @@ public class PrizeServiceImpl extends ServiceImpl<PrizeMapper, Prize>
             prize.setLotteryId(lotteryId);
             prizesList.add(prize);
         }
-        log.info("加入奖品池");
         this.saveBatch(prizesList);
     }
 
     @Override
+    @DS("master")
     public void joinToPool(Long lotteryId) {
         List<Prize> list = cacheUtil.queryWithMutex(CachePrefix.PRIZELIST.getPrefix(), lotteryId, new TypeReference<List<Prize>>() {}, id -> lambdaQuery().eq(Prize::getLotteryId, id).list());
-        for(Prize prize:list){
+        List<String> lists = new ArrayList<>();
+        for(Prize prize:list)
             for(int i = 0;i < prize.getFullCount();i++)
-                redisTemplate.opsForSet().add(CachePrefix.PRIZEPOOL.getPrefix()+ ":" + lotteryId, prize.getId()+"#"+ i + "#" + prize.getName() +"#" + prize.getRarity() + "#");
-        }
-
+                lists.add(prize.getId()+"#"+ i + "#" + prize.getName() +"#" + prize.getRarity() + "#");
+        redisTemplate.opsForSet().add(CachePrefix.PRIZEPOOL.getPrefix()+ ":" + lotteryId, lists.toArray());
     }
 
     @Override
-    public void deleteLotteryActionCache(Long lotteryId, String lotteryName){
+    @DS("master")
+    public void updatePrizeCount(Long lotteryId, String lotteryName){
 
-        log.info("结束抽奖：{},{},尝试开放抽奖记录",lotteryId,lotteryName);
+        log.info("结束抽奖：{},抽奖 : {},尝试开放抽奖记录",lotteryId,lotteryName);
+
+        List<Record> records = recordService.getRecordsByLotteryIdWithNoEnd(lotteryId);
+        List<Prize> oriPrizeList = getPrizeList(lotteryId);
+        List<Prize> newPrizeList = new ArrayList<>();
+        Map<Long,Prize> prizeMap = oriPrizeList.stream().collect(Collectors.toMap(Prize::getId, Function.identity()));
 
         Map<Long,Integer> prizeCnt = new HashMap<>();
 
-        for(Map.Entry<Long,Integer> entry:prizeCnt.entrySet()){
-            if (entry.getKey() == -1 || entry.getKey() == -2)
+        for(Record record:records){
+            Long prizeId = record.getPrizeId();
+            if(prizeId == -1 || prizeId == -2)
                 continue;
-            Prize prize = this.lambdaQuery().eq(Prize::getId,entry.getKey()).one();
-            prize.setOutCount(entry.getValue());
-            prize.setIsEnd(1);
-            this.updateById(prize);
+            prizeCnt.compute(prizeId,(key, value) -> value == null ? 1 : value + 1);
         }
 
-        List<Long> ids = prizeCnt.keySet().stream()
-                .filter(id -> id != -1 && id != -2)
-                .collect(Collectors.toList());
+        Long nullId = null;
 
-        Map<Long, Prize> prizeMap = this.listByIds(ids).stream()
-                .collect(Collectors.toMap(Prize::getId, Function.identity()));
-
-        List<Prize> updateList = new ArrayList<>();
-
-        for (Map.Entry<Long, Integer> entry : prizeCnt.entrySet()) {
-
-            Prize prize = prizeMap.get(entry.getKey());
-            if (prize == null) continue;
-
-            prize.setOutCount(entry.getValue());
+        for(Map.Entry<Long,Prize> prizeEntry:prizeMap.entrySet()){
+            Prize prize = prizeEntry.getValue();
+            if(prize.getName().equals("null")){
+                nullId = prize.getId();
+                continue;
+            }
             prize.setIsEnd(1);
-            updateList.add(prize);
+            if(prizeCnt.containsKey(prize.getId())){
+                prize.setOutCount(prizeCnt.get(prize.getId()));
+            }
+            newPrizeList.add(prize);
         }
 
-        this.updateBatchById(updateList);
 
+
+        this.updateBatchById(newPrizeList);
+        if(nullId != null)
+            this.removeById(nullId);
     }
 
 

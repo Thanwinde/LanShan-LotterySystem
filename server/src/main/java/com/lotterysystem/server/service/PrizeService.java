@@ -26,5 +26,5 @@ public interface PrizeService extends IService<Prize> {
 
     void joinToPool(Long lotteryId);
 
-    void deleteLotteryActionCache(Long lotteryId, String lotteryName);
+    void updatePrizeCount(Long lotteryId, String lotteryName);
 }

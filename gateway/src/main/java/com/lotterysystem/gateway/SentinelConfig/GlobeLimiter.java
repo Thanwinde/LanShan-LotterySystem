@@ -45,8 +45,16 @@ public class GlobeLimiter {
         }
     }
 
-    public static boolean tryGrabAccess(Long UserId) {
-        try (Entry entry = SphU.entry("grab-qps", EntryType.IN, 1, UserId)) {
+    public static boolean tryUserGrabAccess(Long UserId) {
+        try (Entry entry = SphU.entry("grab-user", EntryType.IN, 1, UserId)) {
+            return true;
+        } catch (BlockException e) {
+            return false;
+        }
+    }
+
+    public static boolean tryGlobalGrabAccess() {
+        try (Entry entry = SphU.entry("grab-global", EntryType.IN, 1)) {
             return true;
         } catch (BlockException e) {
             return false;

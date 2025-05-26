@@ -11,9 +11,9 @@ public enum CachePrefix {
     PRIZELIST("prize:list"),    //某个抽奖的奖品表
     PRIZEPOOL("prize:pool"),    //某个抽奖的奖品池（抽奖时使用）
     LOTTERYCOUNT("lottery:count"), //某个抽奖，每个人的抽数（抽奖时使用）
-    LOTTERRECORD("lottery:record"), //抽奖总结果
+    LOTTERRECORD("lottery:allrecords"), //一个抽奖总记录
+    ONERECORD("lottery:record"),    //单个抽奖记录缓存
     USERSALLRECORD("user:allrecord"),  //用户的总奖品
-    USERSPRIZE("user:record"),  //用户单个抽奖的奖品
     BLACKLIST("lottery:blacklist"), //抽奖黑名单（抽奖时使用）
     WEIGHT("lottery:weight"),   //抽奖者的权重（抽奖时使用）
     ATTEND("lottery:attend"),   //允许参加的人(按id)（抽奖时使用）

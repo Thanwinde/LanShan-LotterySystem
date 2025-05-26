@@ -1,4 +1,11 @@
 server:
+#  tomcat:
+#    accept-count: 5000   # 队列容量
+#    threads:
+#      max: 2000
+#      min-spare: 500
+#    max-connections: 20000
+
   port: 8080
   servlet:
     session:
@@ -10,12 +17,30 @@ spring:
         show_sql: true
         format_sql: true
   datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/lottery?useSSL=true&serverTimezone=Asia/Shanghai&characterEncoding=UTF-8
-    username: root
-    password: 123456
+    dynamic:
+      primary: master
+      strict: false
+      datasource:
+        master:
+          url: jdbc:mysql://localhost:3306/lottery?useSSL=true&serverTimezone=Asia/Shanghai&characterEncoding=UTF-8
+          username: root
+          password: 123456
+          driver-class-name: com.mysql.cj.jdbc.Driver
+        slave_1:
+          url: jdbc:mysql://192.168.247.133:3306/lottery?useSSL=true&serverTimezone=Asia/Shanghai&characterEncoding=UTF-8
+          username: root
+          password: 123456
+          driver-class-name: com.mysql.cj.jdbc.Driver
   data:
     redis:
+#      sentinel:
+#        master: mymaster
+#        nodes:
+#          - 127.0.0.1:17001
+#          - 127.0.0.1:17002
+#          - 127.0.0.1:17003
+#        password: 123456
+
       host: localhost
       port: 6379
       password: 123456
@@ -33,6 +58,13 @@ spring:
             instanceName: LotteryScheduler
 
   rabbitmq:
+    connection-timeout: 1s # 设置MQ的连接超时时间
+    template:
+      retry:
+        enabled: true # 开启超时重试机制
+        initial-interval: 1000ms
+        multiplier: 1
+        max-attempts: 3
     host: 192.168.247.133
     port: 5672
     virtual-host: /lottery
@@ -43,9 +75,10 @@ spring:
         retry:
           enabled: true
           initial-interval: 1000ms
-          multiplier: 1
+          multiplier: 2
           max-attempts: 3
           stateless: true
+        acknowledge-mode: auto
 logging:
   level:
     com:

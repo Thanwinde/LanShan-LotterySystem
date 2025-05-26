@@ -2,6 +2,7 @@ package com.lotterysystem.server.service.impl;
 
 import cn.hutool.core.io.resource.ResourceUtil;
 import cn.hutool.core.util.RandomUtil;
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.lotterysystem.gateway.util.UserContext;
 import com.lotterysystem.server.constant.CachePrefix;
 import com.lotterysystem.server.constant.ResultStatue;
@@ -52,10 +53,9 @@ public class LotteryActionImpl implements LotteryActionService {
     }
 
     @Override
+    @DS("master")
     public Result tryGrab(Long lotteryId) {
         Lottery lottery = lotteryService.getLotteryByIdForAPI(lotteryId);
-
-
 
         if(lottery == null){
             return  new Result(ResultStatue.ERROR,"活动已结束或未开始！",null);
@@ -84,6 +84,7 @@ public class LotteryActionImpl implements LotteryActionService {
 
     //纯运气型，来的早就能抢到,如果想实现和时间无关就加入空奖，奖名为"null"就行
     //可用：黑名单，黑名单者获奖概率降低50%，权重：一定几率重掷，取最高者
+    @DS("master")
     public Result normalGrabImmediately(Lottery lottery,Long top) {
         Long userId = UserContext.getId();
         String back;
@@ -91,13 +92,11 @@ public class LotteryActionImpl implements LotteryActionService {
         //黑名单判断
         if(isBlack != null){
             back = redisTemplate.execute(normalGrabScript, Collections.emptyList(),lottery.getId(),userId,top,1,0);
-            log.info("黑幕！");
         }
         else{
             Integer fortune = (Integer) redisTemplate.opsForHash().get(CachePrefix.WEIGHT.getPrefix() + ":" + lottery.getId(), userId.toString());
             if (fortune != null && RandomUtil.randomLong(0L,100L) <= fortune){
                 back = redisTemplate.execute(normalGrabScript, Collections.emptyList(),lottery.getId(),userId,top,0,1);
-                log.info("重掷！");
             }
             else
                 back = redisTemplate.execute(normalGrabScript, Collections.emptyList(),lottery.getId(),userId,top,0,0);
@@ -108,25 +107,29 @@ public class LotteryActionImpl implements LotteryActionService {
         Long id = Long.valueOf(split[0]);
         String name = split[2];
         String rarity = split[3];
-        if(id == -1)
+        if(id == -1){
+            log.info("用户id:{} 结果:{}",userId,"次数用完");
             return new Result(ResultStatue.SUCCESS,"你已用完抽奖次数！",null);
+        }
+
 
         Record record = new Record().setLotteryId(lottery.getId()).setLotteryName(lottery.getName()).setPrizeId(id).setPrizeName(name).setUserId(userId).setIsEnd(1);
-        recordService.sendToQueue("lottery.resultQueue",record);
+        recordService.sendToQueue("lottery.resultQueue","grab",record);
+        log.info("用户id:{} 结果:{}",userId,name);
         if(id == -2 || name.equals("null"))
             return new Result(ResultStatue.SUCCESS,"没中奖！",null);
         return new Result(ResultStatue.SUCCESS,"中奖了！稀有度：" + rarity,name);
     }
-    //纯运气型，来的早就能抢到,如果想实现和时间无关就加入空奖，奖名为"null"就行，延时开奖
+    //延时开奖
+    @DS("master")
     public Result normalGrabLate(Lottery lottery,Long top) {
 
         Long userId = UserContext.getId();
         String back;
-        Integer isBlack = (Integer) redisTemplate.opsForHash().get(CachePrefix.BLACKLIST.getPrefix() + ":" + lottery.getId(), userId);
+        Integer isBlack = (Integer) redisTemplate.opsForHash().get(CachePrefix.BLACKLIST.getPrefix() + ":" + lottery.getId(), userId.toString());
         //黑名单判断
         if(isBlack != null){
             back = redisTemplate.execute(normalGrabScript, Collections.emptyList(),lottery.getId(),userId,top,1);
-            log.info("黑幕！");
         }
         else
             back = redisTemplate.execute(normalGrabScript, Collections.emptyList(),lottery.getId(),userId,top,0);
@@ -135,13 +138,17 @@ public class LotteryActionImpl implements LotteryActionService {
         Long id = Long.valueOf(split[0]);
         String name = split[2];
         String rarity = split[3];
-        if(id == -1)
+        if(id == -1){
+            log.info("用户id:{} 结果:{}",userId,"次数用完");
             return new Result(ResultStatue.SUCCESS,"你已用完抽奖次数！",null);
-        if(id == -2 || name.equals("null")){
+        }
 
+        if(id == -2 || name.equals("null")){
+            //抽到空奖
         }
         Record record = new Record().setLotteryId(lottery.getId()).setLotteryName(lottery.getName()).setPrizeId(id).setPrizeName(name).setUserId(userId).setIsEnd(0);
-        recordService.sendToQueue("lottery.resultQueue",record);
+        recordService.sendToQueue("lottery.exchange1","grab",record);
+        log.info("用户id:{} 结果:{}",userId,name);
         return new Result(ResultStatue.SUCCESS,"抽奖成功，请等待开奖！",null);
     }
 

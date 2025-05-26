@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.codec.Hashids;
 import cn.hutool.core.lang.TypeReference;
 import cn.hutool.json.JSONObject;
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -61,6 +62,7 @@ public class LotteryServiceImpl extends ServiceImpl<LotteryMapper, Lottery> impl
 
     @Override
     @Schema(description = "新增抽奖活动")
+    @DS("master")
     public Result addLottery(LotteryDTO lotteryDTO) {
         if(lotteryDTO.getStartTime().getTime() < System.currentTimeMillis() || lotteryDTO.getEndTime().getTime()< lotteryDTO.getStartTime().getTime()){
             return new Result(ResultStatue.ERROR,"创建失败!时间不合法!",null);
@@ -73,9 +75,6 @@ public class LotteryServiceImpl extends ServiceImpl<LotteryMapper, Lottery> impl
         lottery.setIsEnd(0);
         lottery.setCreatedBy(userId);
         lottery.setCreatorName(name);
-
-        lottery.setCreatedAt(new Date());
-        lottery.setUpdatedAt(new Date());
 
         if(this.save(lottery)){
             try {
@@ -93,6 +92,8 @@ public class LotteryServiceImpl extends ServiceImpl<LotteryMapper, Lottery> impl
             ArrayList<PrizeDTO> PrizeDTOs = lotteryDTO.getPrizes();
             prizeService.addPrizeList(lottery.getId(),PrizeDTOs);
             cacheUtil.delete(CachePrefix.USERSLOTTERY.getPrefix(), lottery.getCreatedBy());
+            lottery.setCreatedAt(new Date());
+            lottery.setUpdatedAt(new Date());
                 return new Result(ResultStatue.SUCCESS,"创建成功!",password);
 
         }
@@ -102,6 +103,7 @@ public class LotteryServiceImpl extends ServiceImpl<LotteryMapper, Lottery> impl
 
     @Override
     @Schema(description = "获得一个抽奖的信息,包括奖池，如果已经结束了还会给出中奖信息")
+    @DS("slave")
     public Result<LotteryVO> getLottery(Long lotteryId) {
         Lottery lottery = cacheUtil.queryWithMutex(CachePrefix.LOTTERYOBJ.getPrefix(), lotteryId, new TypeReference<Lottery>() {}, this::getById);
         if(lottery == null)
@@ -126,6 +128,7 @@ public class LotteryServiceImpl extends ServiceImpl<LotteryMapper, Lottery> impl
 
     @Override
     @Schema(description = "更新抽奖，比较吃性能")
+    @DS("master")
     public Result updateLottery(LotteryDTO lotteryDTO) {
         Lottery lottery = lambdaQuery().eq(Lottery::getId,lotteryDTO.getId()).one();
         Long userId = UserContext.getId();
@@ -166,6 +169,7 @@ public class LotteryServiceImpl extends ServiceImpl<LotteryMapper, Lottery> impl
 
     @Override
     @Schema(description = "提前停止抽奖活动,比较吃性能")
+    @DS("master")
     public Result stopLottery(Long id) {
         Lottery lottery = cacheUtil.queryWithMutex(CachePrefix.LOTTERYOBJ.getPrefix(), id, new TypeReference<Lottery>() {}, this::getById);
 
@@ -187,6 +191,7 @@ public class LotteryServiceImpl extends ServiceImpl<LotteryMapper, Lottery> impl
 
     @Schema(description = "会删除所有数据，包括任务与结果")
     @Override
+    @DS("master")
     public Result deleteLottery(Long id)  {
         Lottery lottery =  cacheUtil.queryWithMutex(CachePrefix.LOTTERYOBJ.getPrefix(), id, new TypeReference<Lottery>() {}, this::getById);
         if(lottery == null)
@@ -222,6 +227,7 @@ public class LotteryServiceImpl extends ServiceImpl<LotteryMapper, Lottery> impl
 
     @Schema(description = "获取自己创建的抽奖的信息，不包括奖品等内容")
     @Override
+    @DS("slave")
     public List<Lottery> getAllMyLottery(Long userId){
         List<Long> lotteryIds = cacheUtil.queryWithMutex(CachePrefix.USERSLOTTERY.getPrefix(),userId,new TypeReference<List<Long>>() {},
                 id -> lambdaQuery().eq(Lottery::getCreatedBy,id).select(Lottery::getId).list().stream().map(Lottery::getId).collect(Collectors.toList()));
@@ -231,6 +237,7 @@ public class LotteryServiceImpl extends ServiceImpl<LotteryMapper, Lottery> impl
 
     @Override
     @Schema(description = "获得所有抽奖活动的信息，给管理员用,无缓存")
+    @DS("slave")
     public List<Lottery> getAllLottery(int currentPage) {
         Integer auth = UserContext.getAuth();
         if(auth != AuthStatue.ADMIN.getCode())
@@ -243,6 +250,7 @@ public class LotteryServiceImpl extends ServiceImpl<LotteryMapper, Lottery> impl
     }
 
     @Override
+    @DS("slave")
     public List<Lottery> getAllJoinLottery(Long userId) {
         List<Record> records = recordService.getMyAllPrizeForAPI(userId);
         Map<Long,List<Record>> recordMap = new HashMap<>();

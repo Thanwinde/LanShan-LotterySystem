@@ -15,7 +15,7 @@ import java.util.List;
 public interface RecordService extends IService<Record> {
 
     @Async
-    void sendToQueue(String queueName, Object result);
+    void sendToQueue(String queueName,String key ,Object result);
 
     Result getMyAllPrize(Long userId);
 
@@ -24,6 +24,8 @@ public interface RecordService extends IService<Record> {
     Result getMyPrizeByLotteryId(Long lotteryId, Long userId);
 
     List<Record> getRecordsByLotteryId(Long lotteryId);
+
+    List<Record> getRecordsByLotteryIdWithNoEnd(Long lotteryId);
 
     void refreshRecord(Long lotteryId);
 }

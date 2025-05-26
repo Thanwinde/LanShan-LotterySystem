@@ -1,6 +1,7 @@
 package com.lotterysystem.server.service.impl;
 
 import com.alibaba.csp.sentinel.annotation.SentinelResource;
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -24,8 +25,10 @@ import java.util.List;
  * @description
  **/
 @Service
+@DS("master")
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
     @Override
+    @DS("slave")
     public Result AdminLogin(String name, String password , HttpServletRequest request) {
 
         User user = lambdaQuery().eq(User::getUsername, name).eq(User::getPassword, password).one();
@@ -40,6 +43,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
+    @DS("slave")
     public Result getAllUser(int curPage){
         Integer auth = UserContext.getAuth();
         if(auth != AuthStatue.ADMIN.getCode()){

@@ -1,7 +1,6 @@
 package com.lotterysystem.gateway.config;
 
-import com.alibaba.csp.sentinel.adapter.spring.webmvc_v6x.SentinelWebInterceptor;
-import com.alibaba.csp.sentinel.adapter.spring.webmvc_v6x.config.SentinelWebMvcConfig;
+
 
 import com.lotterysystem.gateway.interceptor.NormalInterceptor;
 import com.lotterysystem.gateway.interceptor.UserContextInterceptor;
@@ -20,11 +19,11 @@ public class MvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        SentinelWebMvcConfig config = new SentinelWebMvcConfig();
+/*        SentinelWebMvcConfig config = new SentinelWebMvcConfig();
         config.setHttpMethodSpecify(true);
 
         registry.addInterceptor(new SentinelWebInterceptor(config))
-                .addPathPatterns("/**");
+                .addPathPatterns("/**");*/
 
         registry.addInterceptor(userContextInterceptor)
                 .addPathPatterns("/**")
