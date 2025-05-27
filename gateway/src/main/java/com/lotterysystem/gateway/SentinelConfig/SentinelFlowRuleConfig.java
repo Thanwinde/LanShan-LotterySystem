@@ -1,6 +1,8 @@
 package com.lotterysystem.gateway.SentinelConfig;
 
+import com.alibaba.csp.sentinel.slots.block.ClusterRuleConstant;
 import com.alibaba.csp.sentinel.slots.block.RuleConstant;
+import com.alibaba.csp.sentinel.slots.block.flow.ClusterFlowConfig;
 import com.alibaba.csp.sentinel.slots.block.flow.FlowRule;
 import com.alibaba.csp.sentinel.slots.block.flow.FlowRuleManager;
 import jakarta.annotation.PostConstruct;
@@ -23,6 +25,12 @@ public class SentinelFlowRuleConfig {
     public void initAllFlowRules(){
         List<FlowRule> rules = new ArrayList<>();
         FlowRule rule1 = new FlowRule();
+        ClusterFlowConfig clusterFlowConfig = new ClusterFlowConfig();
+        clusterFlowConfig.setThresholdType(1);
+        clusterFlowConfig.setStrategy(ClusterRuleConstant.FLOW_CLUSTER_STRATEGY_NORMAL);
+        clusterFlowConfig.setFallbackToLocalWhenFail(true);
+        rule1.setClusterConfig(clusterFlowConfig);
+        rule1.setClusterMode(true);
         rule1.setResource("grab-global");
         rule1.setCount(3000);
         rule1.setGrade(RuleConstant.FLOW_GRADE_QPS);

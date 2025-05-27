@@ -24,6 +24,11 @@ public class NormalInterceptor implements HandlerInterceptor {
                              HttpServletResponse response,
                              Object handler) {
 
+        //String token = request.getHeader("authorization").substring(7);
+
+
+
+
         HttpSession session = request.getSession(true);
 
         String id = session.getId();

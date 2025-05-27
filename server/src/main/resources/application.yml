@@ -79,6 +79,8 @@ spring:
           max-attempts: 3
           stateless: true
         acknowledge-mode: auto
+  application:
+    name: lottery-server
 logging:
   level:
     com:
