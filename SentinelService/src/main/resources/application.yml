@@ -1,8 +1,0 @@
-server:
-  port: 8010
-  servlet:
-    session:
-      timeout: 60m
-spring:
-  application:
-    name: sentinel-server

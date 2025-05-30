@@ -32,12 +32,6 @@ public class SentinelHotspotRuleConfig {
                 .setGrade(RuleConstant.FLOW_GRADE_QPS)
                 .setCount(1.5);
 
-        //对登录等无权限接口的限流
-        ParamFlowRule normalRule = new ParamFlowRule("normal-global-qps")
-                .setParamIdx(0)
-                .setGrade(RuleConstant.FLOW_GRADE_QPS)
-                .setCount(1.5);
-
         //对用户修改抽奖行为的限流
         ParamFlowRule UserLotteryActionRule = new ParamFlowRule("user-LotteryChangeAction-qps")
                 .setParamIdx(0)
@@ -50,12 +44,12 @@ public class SentinelHotspotRuleConfig {
                 .setGrade(RuleConstant.FLOW_GRADE_QPS)
                 .setCount(5);
 
-        //对抽奖行为的限流
+        //对抽奖行为的限流，不受全局限制
         ParamFlowRule GrabRule = new ParamFlowRule("grab-user")
                 .setParamIdx(0)
                 .setGrade(RuleConstant.FLOW_GRADE_QPS)
-                .setCount(5000);
+                .setCount(20);
 
-        ParamFlowRuleManager.loadRules(Arrays.asList(userRule, adminRule,bannedRule,normalRule,UserLotteryActionRule,AdminLotteryActionRule,GrabRule));
+        ParamFlowRuleManager.loadRules(Arrays.asList(userRule, adminRule,bannedRule,UserLotteryActionRule,AdminLotteryActionRule,GrabRule));
     }
 }

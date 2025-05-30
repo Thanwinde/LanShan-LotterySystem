@@ -81,6 +81,7 @@ spring:
         acknowledge-mode: auto
   application:
     name: lottery-server
+
 logging:
   level:
     com:

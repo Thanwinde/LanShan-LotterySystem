@@ -2,6 +2,8 @@ package com.lotterysystem.server.service.impl;
 
 import cn.hutool.core.lang.TypeReference;
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.poi.excel.ExcelUtil;
+import cn.hutool.poi.excel.ExcelWriter;
 import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,6 +34,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
@@ -211,7 +214,15 @@ public class RecordServiceImpl extends ServiceImpl<RecordMapper, Record>
         this.updateBatchById(list);
     }
 
-
+    @Override
+    public String getRecordsWithExcel(Long lotteryId) {
+        List<Record> records = getRecordsByLotteryId(lotteryId);
+        String path = "E:/it/LotteryRecord-" + lotteryId + ".xlsx";
+        ExcelWriter writer = ExcelUtil.getWriter(path);
+        writer.write(records);
+        writer.close();
+        return path;
+    }
 
 
 }

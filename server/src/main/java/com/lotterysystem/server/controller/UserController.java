@@ -2,6 +2,7 @@ package com.lotterysystem.server.controller;
 
 import com.alibaba.csp.sentinel.annotation.SentinelResource;
 import com.alibaba.csp.sentinel.slots.block.BlockException;
+import com.lotterysystem.gateway.util.UserContext;
 import com.lotterysystem.server.constant.ResultStatue;
 import com.lotterysystem.server.pojo.dto.LoginDTO;
 import com.lotterysystem.server.pojo.dto.Result;
@@ -30,10 +31,11 @@ public class UserController {
     @PostMapping("/admin/login")
     public Result AdminLogin(@RequestBody LoginDTO loginDTO, HttpServletRequest request) {
 
-        HttpSession session = request.getSession(false);
-        if(session != null && session.getAttribute("id") != null){
-            return new Result(ResultStatue.SUCCESS,"你已登录！",session.getAttribute("id"));
+        Long id = UserContext.getId();
+        if (id != null){
+            return new Result(ResultStatue.SUCCESS,"你已登录！",id);
         }
+
         return userLogin.AdminLogin(loginDTO.getUsername(), loginDTO.getPassword(), request);
     }
 

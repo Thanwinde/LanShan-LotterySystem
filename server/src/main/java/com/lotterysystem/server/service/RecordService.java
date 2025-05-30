@@ -5,6 +5,7 @@ import com.lotterysystem.server.pojo.entity.Record;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.springframework.scheduling.annotation.Async;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -28,4 +29,6 @@ public interface RecordService extends IService<Record> {
     List<Record> getRecordsByLotteryIdWithNoEnd(Long lotteryId);
 
     void refreshRecord(Long lotteryId);
+
+    String getRecordsWithExcel(Long lotteryId);
 }

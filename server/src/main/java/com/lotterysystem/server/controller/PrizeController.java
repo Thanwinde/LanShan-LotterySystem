@@ -9,8 +9,13 @@ import com.lotterysystem.server.pojo.dto.Result;
 import com.lotterysystem.server.service.LotteryActionService;
 import com.lotterysystem.server.service.RecordService;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.*;
+import java.net.URLEncoder;
 
 /**
  * @author nsh
@@ -52,6 +57,24 @@ public class PrizeController {
             return recordService.getMyAllPrize(userId);
         else
             return recordService.getMyPrizeByLotteryId(lotteryId , userId);
+    }
+
+    @GetMapping("/excel")
+    public void getRecordWithExcel(@RequestParam("lotteryid") Long lotteryId, HttpServletResponse response) throws IOException {
+        String path = recordService.getRecordsWithExcel(lotteryId);
+
+        InputStream inputStream = new FileInputStream(path);
+        response.reset();
+        response.setContentType("application/octet-stream");
+        String filename = new File(path).getName();
+        response.addHeader("Content-Disposition", "attachment; filename=" + URLEncoder.encode(filename, "UTF-8"));
+        ServletOutputStream outputStream = response.getOutputStream();
+        byte[] b = new byte[1024];
+        int len;
+        while ((len = inputStream.read(b)) > 0) {
+            outputStream.write(b, 0, len);
+        }
+        inputStream.close();
     }
 
 }

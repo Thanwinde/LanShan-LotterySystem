@@ -25,16 +25,10 @@ public class SentinelFlowRuleConfig {
     public void initAllFlowRules(){
         List<FlowRule> rules = new ArrayList<>();
         FlowRule rule1 = new FlowRule();
-        ClusterFlowConfig clusterFlowConfig = new ClusterFlowConfig();
-        clusterFlowConfig.setThresholdType(1);
-        clusterFlowConfig.setStrategy(ClusterRuleConstant.FLOW_CLUSTER_STRATEGY_NORMAL);
-        clusterFlowConfig.setFallbackToLocalWhenFail(true);
-        rule1.setClusterConfig(clusterFlowConfig);
         rule1.setClusterMode(true);
         rule1.setResource("grab-global");
-        rule1.setCount(3000);
+        rule1.setCount(10);
         rule1.setGrade(RuleConstant.FLOW_GRADE_QPS);
-        rule1.setLimitApp("default");
         rules.add(rule1);
 
         FlowRuleManager.loadRules(rules);

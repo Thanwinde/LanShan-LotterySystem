@@ -37,14 +37,6 @@ public class GlobeLimiter {
         }
     }
 
-    public static boolean tryNormalAccess(String sessionId) {
-        try (Entry entry = SphU.entry("normal-global-qps", EntryType.IN, 1, sessionId)) {
-            return true;
-        } catch (BlockException e) {
-            return false;
-        }
-    }
-
     public static boolean tryUserGrabAccess(Long UserId) {
         try (Entry entry = SphU.entry("grab-user", EntryType.IN, 1, UserId)) {
             return true;

@@ -1,8 +1,5 @@
 package com.lotterysystem.gateway.config;
 
-
-
-import com.lotterysystem.gateway.interceptor.NormalInterceptor;
 import com.lotterysystem.gateway.interceptor.UserContextInterceptor;
 
 import lombok.RequiredArgsConstructor;
@@ -14,7 +11,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class MvcConfig implements WebMvcConfigurer {
 
-    final NormalInterceptor normalInterceptor;
     final UserContextInterceptor userContextInterceptor;
 
     @Override
@@ -33,13 +29,6 @@ public class MvcConfig implements WebMvcConfigurer {
                         "/v3/**",
                         "/error"
                 );
-
-        registry.addInterceptor(normalInterceptor)
-                .addPathPatterns(
-                        "/api/admin/login",
-                        "/swagger-ui/**",
-                        "/v3/**");
-
     }
 
 

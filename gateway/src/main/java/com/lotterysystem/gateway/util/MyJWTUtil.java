@@ -1,10 +1,13 @@
 package com.lotterysystem.gateway.util;
 
+import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.exceptions.ValidateException;
 import cn.hutool.jwt.JWT;
+import cn.hutool.jwt.JWTUtil;
 import cn.hutool.jwt.JWTValidator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -12,19 +15,19 @@ import java.util.Map;
  * @data 2025/5/27 13:02
  * @description
  **/
-public class JWTUtil {
+public class MyJWTUtil {
     static String key = "loveCQUPT5mm";
 
-    public static String createJWT(Map<String, String> claims) {
+    public static String createJWT(Map<String, Object> claims) {
         String token = JWT.create()
                 .addPayloads(claims)
-                .setExpiresAt(DateUtil.offsetHour(new Date(), 1))
+                .setExpiresAt(new Date(DateUtil.offsetHour(new Date(), 1).getTime() * 1000))
                 .setKey(key.getBytes())
                 .sign();
         return token;
     }
 
-    public static Map<String,String> parseToken(String token) {
+    public static Map<String,Object> parseToken(String token) {
         // 1.校验token是否为空
         if (token == null) {
             return null;
@@ -37,7 +40,7 @@ public class JWTUtil {
             return null;
         }
         // 2.校验jwt是否有效
-        if (!jwt.verify()) {
+        if (!JWTUtil.verify(token,key.getBytes())) {
             // 验证失败
            return null;
         }
@@ -48,10 +51,10 @@ public class JWTUtil {
             return null;
         }
         // 4.数据格式校验
-        Map<String,String> userPayload = (Map<String, String>) jwt.getPayload();
-        if (userPayload == null) {
-            return null;
-        }
+        Map<String,Object> userPayload = new HashMap<>();
+        userPayload.put("userId",jwt.getPayload("userId"));
+        userPayload.put("name",jwt.getPayload("name"));
+        userPayload.put("auth",jwt.getPayload("auth"));
 
         // 5.数据解析
         try {

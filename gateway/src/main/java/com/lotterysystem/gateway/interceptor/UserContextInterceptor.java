@@ -2,6 +2,7 @@ package com.lotterysystem.gateway.interceptor;
 
 import com.lotterysystem.gateway.SentinelConfig.GlobeLimiter;
 import com.lotterysystem.gateway.constant.AuthStatue;
+import com.lotterysystem.gateway.util.MyJWTUtil;
 import com.lotterysystem.gateway.util.UserContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -13,6 +14,8 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Date;
+import java.util.Map;
 
 @Slf4j
 @Configuration
@@ -24,22 +27,22 @@ public class UserContextInterceptor implements HandlerInterceptor {
                              HttpServletResponse response,
                              Object handler) throws IOException {
 
-        HttpSession session = request.getSession(false);
+        String token = request.getHeader("Authorization");
 
-        if (session == null) {
+        if(token == null){
             log.error("无信息，未登录！");
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return false;
         }
 
-        Long userid = (Long) session.getAttribute("id");
-        String name = (String) session.getAttribute("name");
-        Integer auth = (Integer) session.getAttribute("auth");
-        if (userid == null) {
-            log.error("无信息，未登录！");
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            return false;
-        }
+        token = token.substring(7);
+
+        Map<String,Object> info = MyJWTUtil.parseToken(token);
+
+        Long userid = Long.valueOf(info.get("userId").toString()) ;
+        String name = info.get("name").toString();
+        Integer auth = Integer.valueOf(info.get("auth").toString()) ;
+
         boolean sign;
         String url = request.getRequestURI();
         if("/api/prize/grab".equals(url) || "/api/prize/passgrab".equals(url)) {
@@ -54,11 +57,12 @@ public class UserContextInterceptor implements HandlerInterceptor {
                     sign = GlobeLimiter.tryBannedAccess(userid);
             }
         }
+
         if(!sign){
             log.info("触发全局限流！id:{}",userid);
             PrintWriter writer = response.getWriter();
             response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
-            response.setContentType("application/json");
+            response.setContentType("application/text;charset=utf-8");
             response.setCharacterEncoding("UTF-8");
             writer.write("操作太快了，请稍等一会吧");
             writer.close();
