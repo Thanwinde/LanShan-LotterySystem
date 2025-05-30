@@ -30,51 +30,36 @@ public class CacheUtil {
         String key = keyPrefix +":"+ id;
         String json = redisTemplate.opsForValue().get(key);
         if (StrUtil.isNotBlank(json)) {
-
-            //log.info("Redis缓存命中! {}", json);
-
-                return JSONUtil.toBean(json,type,false);
-
+            return JSONUtil.toBean(json,type,false);
         }
         if (json != null) {
-
-            //log.info("Redis空缓存命中!");
             return null;
-
         }
-        //没有数据，拿锁到mysql查
         try {
-
 
             if (!tryLock(keyPrefix, id)) {
                 Thread.sleep(50);
                 return queryWithMutex(keyPrefix, id, type, dbFallback);
             } else {
 
-
-            //log.info("成功获取锁！");
-
             r = dbFallback.apply(id);
 
             if (r == null) {
                 redisTemplate.opsForValue().set(key, "", 60L + RandomUtil.randomLong(15) , TimeUnit.SECONDS);
-                //log.info("未找到对象，添加空缓存!");
                 return null;
             }
 
             json = JSONUtil.toJsonStr(r);
             redisTemplate.opsForValue().set(key, json, 30L * 60 + RandomUtil.randomLong(15), TimeUnit.SECONDS);
-            //log.info("新增缓存: {}", json);
 
             }
 
         } catch (InterruptedException e) {
-
             throw new RuntimeException(e);
-
         } finally {
-            //log.info("成功解锁！");
+
             unlock(keyPrefix,id);
+
         }
         return r;
     }
@@ -98,7 +83,6 @@ public class CacheUtil {
         }
         //没有数据，拿锁到mysql查
         try {
-
 
             if (!tryLock(keyPrefix, id)) {
                 Thread.sleep(50);
