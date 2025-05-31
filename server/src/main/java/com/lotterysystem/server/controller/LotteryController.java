@@ -1,7 +1,7 @@
 package com.lotterysystem.server.controller;
 
-import cn.hutool.json.JSONObject;
-import com.lotterysystem.gateway.SentinelConfig.LotteryActionLimiter;
+import com.lotterysystem.gateway.RedisLimiter;
+import com.lotterysystem.gateway.constant.LimiterType;
 import com.lotterysystem.gateway.util.UserContext;
 import com.lotterysystem.server.constant.AuthStatue;
 import com.lotterysystem.server.constant.ResultStatue;
@@ -28,6 +28,8 @@ import java.util.List;
 public class LotteryController {
 
     final LotteryService lotteryService;
+
+    final RedisLimiter redisLimiter;
 
     @PostMapping
     @Schema(description = "新增抽奖活动")
@@ -83,12 +85,14 @@ public class LotteryController {
     }
 
     public boolean chooseLimiter(){
-        Long userId = UserContext.getId();
+        String userId = UserContext.getId().toString();
         Integer auth = UserContext.getAuth();
         if(auth == AuthStatue.USER.getCode())
-            return LotteryActionLimiter.tryUserAccess(userId);
+            //return LotteryActionLimiter.tryUserAccess(userId);
+            return redisLimiter.tryAccess(LimiterType.ADMINCHANGELOTTERY,userId);
         else
-            return LotteryActionLimiter.tryAdminAccess(userId);
+            //return LotteryActionLimiter.tryAdminAccess(userId);
+            return redisLimiter.tryAccess(LimiterType.CHANGELOTTERY,userId);
     }
 
     public Result defaultFallback() {

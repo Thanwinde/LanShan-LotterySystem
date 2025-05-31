@@ -7,9 +7,6 @@ local milliseconds = tonumber(current_time[2])
 local now = unix_timestamp * 1000 + milliseconds / 1000
 local star = now - 1000
 
-redis.call('SET','resourceId',resourceId)
-redis.call('SET','qps',QPS)
-
 redis.call('ZREMRANGEBYSCORE',resourceId,0,star)
 
 local cnt = redis.call('ZCARD',resourceId)

@@ -1,14 +1,12 @@
 package com.lotterysystem.gateway.interceptor;
 
 import com.lotterysystem.gateway.RedisLimiter;
-import com.lotterysystem.gateway.SentinelConfig.GlobeLimiter;
 import com.lotterysystem.gateway.constant.AuthStatue;
 import com.lotterysystem.gateway.constant.LimiterType;
 import com.lotterysystem.gateway.util.MyJWTUtil;
 import com.lotterysystem.gateway.util.UserContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
@@ -67,7 +65,7 @@ public class UserContextInterceptor implements HandlerInterceptor {
         }
 
         if(!sign){
-            log.info("触发全局限流！id:{}",userid);
+            log.info("触发限流！id:{}",userid);
             PrintWriter writer = response.getWriter();
             response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
             response.setContentType("application/text;charset=utf-8");

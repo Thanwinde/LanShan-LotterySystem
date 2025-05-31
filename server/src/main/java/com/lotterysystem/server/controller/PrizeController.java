@@ -1,8 +1,6 @@
 package com.lotterysystem.server.controller;
 
 import cn.hutool.core.codec.Hashids;
-import com.alibaba.csp.sentinel.annotation.SentinelResource;
-import com.lotterysystem.gateway.SentinelConfig.GlobeLimiter;
 import com.lotterysystem.gateway.util.UserContext;
 import com.lotterysystem.server.constant.ResultStatue;
 import com.lotterysystem.server.pojo.dto.Result;

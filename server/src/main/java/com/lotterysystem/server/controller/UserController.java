@@ -1,7 +1,5 @@
 package com.lotterysystem.server.controller;
 
-import com.alibaba.csp.sentinel.annotation.SentinelResource;
-import com.alibaba.csp.sentinel.slots.block.BlockException;
 import com.lotterysystem.gateway.util.UserContext;
 import com.lotterysystem.server.constant.ResultStatue;
 import com.lotterysystem.server.pojo.dto.LoginDTO;

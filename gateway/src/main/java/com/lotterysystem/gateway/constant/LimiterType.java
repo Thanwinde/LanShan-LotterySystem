@@ -12,7 +12,7 @@ public enum LimiterType {
     BANNEDGLOBE("BANNEDGLOBE-","2"),
     CHANGELOTTERY("CHANGELOTTERY-","1"),
     ADMINCHANGELOTTERY("ADMINCHANGELOTTERY-","5"),
-    GRABACTION("GRABACTION-","15"),
+    GRABACTION("GRABACTION-","8000"),
 
     ;
     private final String type;
