@@ -1,6 +1,5 @@
 package com.lotterysystem.server.util;
 
-
 import cn.hutool.core.lang.TypeReference;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;

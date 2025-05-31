@@ -1,7 +1,9 @@
 package com.lotterysystem.gateway.interceptor;
 
+import com.lotterysystem.gateway.RedisLimiter;
 import com.lotterysystem.gateway.SentinelConfig.GlobeLimiter;
 import com.lotterysystem.gateway.constant.AuthStatue;
+import com.lotterysystem.gateway.constant.LimiterType;
 import com.lotterysystem.gateway.util.MyJWTUtil;
 import com.lotterysystem.gateway.util.UserContext;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,6 +23,8 @@ import java.util.Map;
 @Configuration
 @RequiredArgsConstructor
 public class UserContextInterceptor implements HandlerInterceptor {
+
+    private final RedisLimiter redisLimiter;
 
     @Override
     public boolean preHandle(HttpServletRequest request,
@@ -46,15 +50,19 @@ public class UserContextInterceptor implements HandlerInterceptor {
         boolean sign;
         String url = request.getRequestURI();
         if("/api/prize/grab".equals(url) || "/api/prize/passgrab".equals(url)) {
-            sign = GlobeLimiter.tryUserGrabAccess(userid) && GlobeLimiter.tryGlobalGrabAccess();
+            //sign = GlobeLimiter.tryUserGrabAccess(userid) && GlobeLimiter.tryGlobalGrabAccess();
+            sign = redisLimiter.tryAccess(LimiterType.GRABACTION, String.valueOf(userid));
         } else {
             if (auth == AuthStatue.USER.getCode()) {
-                sign = GlobeLimiter.tryUserAccess(userid);
+                //sign = GlobeLimiter.tryUserAccess(userid);
+                sign = redisLimiter.tryAccess(LimiterType.USERGLOBE, String.valueOf(userid));
             } else {
                 if (auth == AuthStatue.ADMIN.getCode())
-                    sign = GlobeLimiter.tryAdminAccess(userid);
+                    //sign = GlobeLimiter.tryAdminAccess(userid);
+                    sign = redisLimiter.tryAccess(LimiterType.ADMINGLOBE, String.valueOf(userid));
                 else
-                    sign = GlobeLimiter.tryBannedAccess(userid);
+                    //sign = GlobeLimiter.tryBannedAccess(userid);
+                    sign = redisLimiter.tryAccess(LimiterType.BANNEDGLOBE, String.valueOf(userid));
             }
         }
 

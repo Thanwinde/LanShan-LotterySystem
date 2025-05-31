@@ -116,7 +116,7 @@ public class LotteryJobService extends ServiceImpl<LotteryMapper, Lottery> {
         cacheUtil.delete(CachePrefix.ATTEND.getPrefix(), lottery.getId());  //删除参与者表
         cacheUtil.delete(CachePrefix.BLACKLIST.getPrefix(), lottery.getId());   //删除黑名单表
         scheduleFinalizeLottery(lottery.getId(),lottery.getName());
-//        prizeService.updatePrizeCount(lotteryId,lottery.getName()); //更新奖品数到mysql
+//        prizeService.updatePrizeCount(lotteryId,lottery.getType()); //更新奖品数到mysql
 //        recordService.refreshRecord(lotteryId); //更新Record，isend设成1，让其可以被访问（对于非延时没有用）
 
     }
@@ -134,7 +134,7 @@ public class LotteryJobService extends ServiceImpl<LotteryMapper, Lottery> {
         cacheUtil.delete(CachePrefix.BLACKLIST.getPrefix(), lottery.getId());   //删除黑名单表
         scheduleFinalizeLottery(lottery.getId(),lottery.getName());
 
-//        prizeService.updatePrizeCount(lottery.getId(),lottery.getName());//更新奖品数到mysql
+//        prizeService.updatePrizeCount(lottery.getId(),lottery.getType());//更新奖品数到mysql
 //        recordService.refreshRecord(lottery.getId());//更新Record，isend设成1，让其可以被访问（对于非延时没有用）
 
     }

@@ -34,7 +34,10 @@ public class UserContext {
 
     public static void remove() {
         threadLocalId.remove();
+        threadLocalAuth.remove();
+        threadLocalName.remove();
     }
+
 
 
 
