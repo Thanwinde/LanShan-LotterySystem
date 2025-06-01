@@ -1,6 +1,6 @@
 package com.lotterysystem.server.controller;
 
-import com.lotterysystem.gateway.RedisLimiter;
+import com.lotterysystem.gateway.Limiter.RedisLimiter;
 import com.lotterysystem.gateway.constant.LimiterType;
 import com.lotterysystem.gateway.util.UserContext;
 import com.lotterysystem.server.constant.AuthStatue;

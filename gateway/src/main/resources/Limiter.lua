@@ -19,8 +19,8 @@ if cnt >= QPS then
     return false
 end
 
-redis.call('EXPIRE',resourceId,3)
-
 redis.call('ZADD',resourceId,now,now)
+
+redis.call('EXPIRE',resourceId,3)
 
 return true

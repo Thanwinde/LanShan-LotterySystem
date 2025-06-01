@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: Lottery-System
+
+#QPS: "{'LIMITER:SYSTEMGLOBE': '8000',
+#       'LIMITER:USERGLOBE': '5',
+#       'LIMITER:ADMINGLOBE': '20',
+#       'LIMITER:BANNEDGLOBE': '2',
+#       'LIMITER:CHANGELOTTERY': '1',
+#       'LIMITER:ADMINCHANGELOTTERY': '5',
+#       'LIMITER:GRABACTION': '15'
+#       }"

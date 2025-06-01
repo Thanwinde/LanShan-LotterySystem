@@ -11,6 +11,8 @@ server:
     session:
       timeout: 60m
 spring:
+  profiles:
+    active: gateway
   jpa:
     properties:
       hibernate:

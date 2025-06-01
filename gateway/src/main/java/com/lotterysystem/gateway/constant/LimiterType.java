@@ -6,25 +6,21 @@ package com.lotterysystem.gateway.constant;
  * @description
  **/
 public enum LimiterType {
-    SYSTEMGLOBE("SYSTEMGLOBE","8000"),
-    USERGLOBE("USERGLOBE-","5"),
-    ADMINGLOBE("ADMINGLOBE-","20"),
-    BANNEDGLOBE("BANNEDGLOBE-","2"),
-    CHANGELOTTERY("CHANGELOTTERY-","1"),
-    ADMINCHANGELOTTERY("ADMINCHANGELOTTERY-","5"),
-    GRABACTION("GRABACTION-","8000"),
+    SYSTEMGLOBE("LIMITER:SYSTEMGLOBE"),
+    USERGLOBE("LIMITER:USERGLOBE"),
+    ADMINGLOBE("LIMITER:ADMINGLOBE"),
+    BANNEDGLOBE("LIMITER:BANNEDGLOBE"),
+    CHANGELOTTERY("LIMITER:CHANGELOTTERY"),
+    ADMINCHANGELOTTERY("LIMITER:ADMINCHANGELOTTERY"),
+    GRABACTION("LIMITER:GRABACTION"),
 
     ;
     private final String type;
-    private final String qps;
-    LimiterType(String type, String qps) {
+    LimiterType(String type) {
         this.type = type;
-        this.qps = qps;
     }
     public String getType() {
         return type;
     }
-    public String getQps() {
-        return qps;
-    }
+
 }

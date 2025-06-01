@@ -21,7 +21,7 @@ public class MyJWTUtil {
     public static String createJWT(Map<String, Object> claims) {
         String token = JWT.create()
                 .addPayloads(claims)
-                .setExpiresAt(new Date(DateUtil.offsetHour(new Date(), 1).getTime() * 1000))
+                .setExpiresAt(new Date(DateUtil.offsetHour(new Date(), 1).getTime() ))
                 .setKey(key.getBytes())
                 .sign();
         return token;

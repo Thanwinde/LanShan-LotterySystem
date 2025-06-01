@@ -1,6 +1,6 @@
 package com.lotterysystem.gateway.interceptor;
 
-import com.lotterysystem.gateway.RedisLimiter;
+import com.lotterysystem.gateway.Limiter.RedisLimiter;
 import com.lotterysystem.gateway.constant.AuthStatue;
 import com.lotterysystem.gateway.constant.LimiterType;
 import com.lotterysystem.gateway.util.MyJWTUtil;
@@ -14,7 +14,6 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Date;
 import java.util.Map;
 
 @Slf4j
@@ -40,6 +39,12 @@ public class UserContextInterceptor implements HandlerInterceptor {
         token = token.substring(7);
 
         Map<String,Object> info = MyJWTUtil.parseToken(token);
+
+        if(info == null){
+            log.error("无信息，未登录！");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return false;
+        }
 
         Long userid = Long.valueOf(info.get("userId").toString()) ;
         String name = info.get("name").toString();
@@ -69,7 +74,6 @@ public class UserContextInterceptor implements HandlerInterceptor {
             PrintWriter writer = response.getWriter();
             response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
             response.setContentType("application/text;charset=utf-8");
-            response.setCharacterEncoding("UTF-8");
             writer.write("操作太快了，请稍等一会吧");
             writer.close();
             return false;

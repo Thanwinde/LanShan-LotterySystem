@@ -1,4 +1,4 @@
-package com.lotterysystem.gateway;
+package com.lotterysystem.gateway.Limiter;
 
 import cn.hutool.core.io.resource.ResourceUtil;
 import com.lotterysystem.gateway.constant.LimiterType;
@@ -34,9 +34,9 @@ public class RedisLimiter {
     }
 
     public Boolean tryAccess(LimiterType type, String Id){
-
-        log.info("触发限流: {}",type.getType());
-        return redisTemplate.execute(LimiterScript, Collections.emptyList(),type.getType() + Id,type.getQps());
+        String qps = LimiterDetails.QPSMap.get(type.getType());
+        //log.info("触发限流: {}",type.getType());
+        return redisTemplate.execute(LimiterScript, Collections.emptyList(),type.getType() + Id,qps);
 
     }
 

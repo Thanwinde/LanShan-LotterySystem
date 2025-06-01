@@ -17,7 +17,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <spring-boot.version>3.1.12</spring-boot.version>
-        <spring-cloud.version>2022.0.0-RC2</spring-cloud.version>
+        <spring-cloud.version>2021.0.3</spring-cloud.version>
+        <spring-cloud-alibaba.version>2021.0.4.0</spring-cloud-alibaba.version>
         <mybatis-plus>3.5.12</mybatis-plus>
         <dynamic-datasource>4.3.1</dynamic-datasource>
         <hutool-version>5.8.37</hutool-version>
@@ -91,6 +92,8 @@
             <version>${sentinel.version}</version>
         </dependency>-->
 
+
+
     </dependencies>
 
     <dependencyManagement>
@@ -103,10 +106,10 @@
                 <scope>import</scope>
             </dependency>
 
- <!--           <dependency>
+            <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
-                <version>2022.0.5</version>
+                <version>${spring-cloud.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -114,10 +117,10 @@
             <dependency>
                 <groupId>com.alibaba.cloud</groupId>
                 <artifactId>spring-cloud-alibaba-dependencies</artifactId>
-                <version>2023.0.3.2</version>
+                <version>${spring-cloud-alibaba.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
-            </dependency>-->
+            </dependency>
 
             <dependency>
                 <groupId>com.baomidou</groupId>
